@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="RotiKu - Interactive Product Dashboard bertema bakery oleh Fitri (NIM 2440304027). Eksplorasi dataset produk DummyJSON dengan fitur favorit localStorage, catatan tervalidasi, dan resilience retry.">
+  <meta name="author" content="Fitri (NIM 2440304027)">
+  <title>RotiKu — Interactive Product Dashboard | Fitri (2440304027)</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Accessibility Skip Link -->
+  <a href="#main-content" class="skip-link">Lewati ke Konten Utama</a>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <a href="#overview" class="brand-logo" aria-label="RotiKu Beranda">
+          <!-- Bakery Icon SVG -->
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 14.5C4 11 7 8 12 8s8 3 8 6.5c0 2-1 3.5-3 3.5H7c-2 0-3-1.5-3-3.5Z"/>
+            <path d="M7 11c1-1.5 2.5-2 5-2s4 .5 5 2"/>
+            <path d="M9 14.5c.5-1 1.5-1.5 3-1.5s2.5.5 3 1.5"/>
+            <path d="M6 18h12"/>
+          </svg>
+          <div class="brand-text">
+            <span class="brand-title">RotiKu</span>
+            <span class="brand-tagline">Bakery-Themed Product Dashboard</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Mahasiswa Identity Badge -->
+      <div class="student-badge" aria-label="Identitas Mahasiswa">
+        <div class="student-avatar" aria-hidden="true">F</div>
+        <div class="student-meta">
+          <span class="student-name">Fitri</span>
+          <span class="student-nim">NIM: 2440304027 (Variasi 027)</span>
+        </div>
+      </div>
+
+      <!-- Navigation Bar -->
+      <nav class="app-nav" aria-label="Navigasi Utama">
+        <ul class="nav-list">
+          <li><a href="#overview" class="nav-link active">Statistik</a></li>
+          <li><a href="#catalog" class="nav-link">Katalog</a></li>
+          <li><a href="#favorites" class="nav-link">Favorit <span id="nav-fav-badge" class="badge-counter" aria-label="Jumlah favorit">0</span></a></li>
+          <li><a href="#notes" class="nav-link">Catatan</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section" aria-labelledby="hero-title">
+      <div class="hero-container">
+        <div class="hero-badge">
+          <span class="badge-pill">PTS Pemrograman Web 2026</span>
+          <span class="badge-info">Variasi: X=0 (Products) | Y=2 (Bookmark) | Z=7 (Catatan 30+) | C=1 (Retry & Timestamp)</span>
+        </div>
+        <h1 id="hero-title" class="hero-title">Eksplorasi Produk Global dengan Hangatnya Sentuhan RotiKu</h1>
+        <p class="hero-description">
+          Dashboard interaktif menyajikan dataset riil dari <strong>DummyJSON Products</strong> dengan balutan desain visual toko roti yang nyaman, bersih, dan elegan. Dilengkapi dengan pengelolaan status API, penyimpanan favorit persisten, validasi formulir ketat, serta mekanisme retry resilience.
+        </p>
+      </div>
+    </section>
+
+    <!-- Status & Resilience Bar (Challenge C = 1) -->
+    <section class="status-bar-section" aria-label="Status Sistem dan REST API">
+      <div class="status-container">
+        <div class="status-item">
+          <span class="status-label">Status Koneksi API:</span>
+          <div class="status-indicator-group">
+            <span id="api-status-dot" class="status-dot status-loading" aria-hidden="true"></span>
+            <span id="api-status-text" class="status-text" aria-live="polite">Memuat data API...</span>
+          </div>
+        </div>
+
+        <div class="status-item">
+          <span class="status-label">Waktu Terakhir Data Berhasil Dimuat:</span>
+          <span id="last-updated-time" class="timestamp-badge" aria-live="polite">Belum ada data berhasil dimuat</span>
+        </div>
+
+        <div class="status-actions">
+          <button id="btn-retry" class="btn btn-outline-retry" type="button" hidden>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/>
+            </svg>
+            <span>Coba Lagi (Retry)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Network Warning Alert Banner -->
+      <div id="connection-alert" class="alert-banner alert-warning" role="alert" hidden>
+        <span class="alert-icon" aria-hidden="true">⚠️</span>
+        <div class="alert-content">
+          <strong id="connection-alert-title">Pemberitahuan Jaringan:</strong>
+          <span id="connection-alert-message">Gagal menghubungi server DummyJSON. Silakan periksa koneksi internet Anda atau klik tombol Coba Lagi.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Overview / Statistics Section -->
+    <section id="overview" class="stats-section" aria-labelledby="stats-heading">
+      <div class="section-header">
+        <div>
+          <h2 id="stats-heading" class="section-title">Ringkasan Statistik Produk</h2>
+          <p class="section-subtitle">Kalkulasi real-time dihitung langsung menggunakan fungsi agregasi JavaScript (reduce, map, Set) dari data DummyJSON Products.</p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <!-- Stat Card 1: Total Produk -->
+        <article class="stat-card">
+          <div class="stat-icon-wrapper stat-icon-amber" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m7.5 4.27 9 5.15"/>
+              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+              <path d="m3.3 7 8.7 5 8.7-5"/>
+              <path d="M12 22V12"/>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Total Produk</span>
+            <div id="stat-total-products" class="stat-value" aria-live="polite">--</div>
+            <span class="stat-caption">Item diterima dari REST API</span>
+          </div>
+        </article>
+
+        <!-- Stat Card 2: Rata-rata Harga -->
+        <article class="stat-card">
+          <div class="stat-icon-wrapper stat-icon-brown" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+              <path d="M12 6v12"/>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Rata-rata Harga</span>
+            <div id="stat-avg-price" class="stat-value" aria-live="polite">--</div>
+            <span class="stat-caption">Kalkulasi <code>reduce()</code> nilai USD</span>
+          </div>
+        </article>
+
+        <!-- Stat Card 3: Produk Harga Tertinggi -->
+        <article class="stat-card">
+          <div class="stat-icon-wrapper stat-icon-warm" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+              <path d="M4 22h16"/>
+              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Produk Termahal</span>
+            <div id="stat-max-price" class="stat-value" aria-live="polite">--</div>
+            <span id="stat-max-name" class="stat-caption truncate" title="Nama produk termahal">Mencari data...</span>
+          </div>
+        </article>
+
+        <!-- Stat Card 4: Kategori Unik -->
+        <article class="stat-card">
+          <div class="stat-icon-wrapper stat-icon-beige" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="7" height="7" x="3" y="3" rx="1"/>
+              <rect width="7" height="7" x="14" y="3" rx="1"/>
+              <rect width="7" height="7" x="14" y="14" rx="1"/>
+              <rect width="7" height="7" x="3" y="14" rx="1"/>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Kategori Unik</span>
+            <div id="stat-unique-categories" class="stat-value" aria-live="polite">--</div>
+            <span class="stat-caption">Dihitung dengan <code>Set()</code> unik</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Catalog Section -->
+    <section id="catalog" class="catalog-section" aria-labelledby="catalog-heading">
+      <div class="section-header">
+        <div>
+          <h2 id="catalog-heading" class="section-title">Katalog Eksplorasi Produk</h2>
+          <p class="section-subtitle">Data asli REST API DummyJSON Products ditampilkan dengan atribut lengkap: thumbnail asli, nama, harga, kategori, rating, deskripsi, dan tombol bookmark.</p>
+        </div>
+      </div>
+
+      <!-- Toolbar: Filter, Search, Tab -->
+      <div class="catalog-toolbar">
+        <!-- View Filter Tabs -->
+        <div class="filter-tabs" role="tablist" aria-label="Tampilan Produk">
+          <button id="tab-all-products" class="tab-button active" role="tab" aria-selected="true" type="button">
+            Semua Produk (<span id="count-all-badge">0</span>)
+          </button>
+          <button id="tab-favorite-products" class="tab-button" role="tab" aria-selected="false" type="button">
+            Favorit Saya (<span id="count-fav-badge">0</span>)
+          </button>
+        </div>
+
+        <!-- Search and Dropdowns -->
+        <div class="toolbar-controls">
+          <div class="search-box">
+            <label for="search-input" class="sr-only">Cari Produk berdasarkan nama atau deskripsi</label>
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input type="search" id="search-input" class="form-input" placeholder="Cari nama atau deskripsi produk...">
+          </div>
+
+          <div class="select-group">
+            <label for="category-select" class="sr-only">Filter Kategori</label>
+            <select id="category-select" class="form-select">
+              <option value="all">Semua Kategori</option>
+            </select>
+          </div>
+
+          <div class="select-group">
+            <label for="sort-select" class="sr-only">Urutkan Produk</label>
+            <select id="sort-select" class="form-select">
+              <option value="default">Urutan Standar</option>
+              <option value="price-asc">Harga: Rendah ke Tinggi</option>
+              <option value="price-desc">Harga: Tinggi ke Rendah</option>
+              <option value="rating-desc">Rating: Tertinggi</option>
+              <option value="name-asc">Nama: A - Z</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State Element -->
+      <div id="catalog-loading" class="state-container loading-state" role="status">
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="state-text">Sedang mengambil data produk dari <code>https://dummyjson.com/products</code>...</p>
+        <span class="state-subtext">Mohon tunggu sejenak, data sedang diproses.</span>
+      </div>
+
+      <!-- Error State Element -->
+      <div id="catalog-error" class="state-container error-state" role="alert" hidden>
+        <div class="error-illustration" aria-hidden="true">⚠️</div>
+        <h3 class="state-title" id="error-title">Gagal Mengambil Data Produk</h3>
+        <p class="state-text" id="error-message">Terjadi gangguan saat menghubungi server API. Silakan periksa koneksi internet Anda.</p>
+        <div class="state-actions">
+          <button id="btn-error-retry" class="btn btn-primary" type="button">Coba Muat Ulang Sekarang</button>
+        </div>
+      </div>
+
+      <!-- Empty State Element -->
+      <div id="catalog-empty" class="state-container empty-state" hidden>
+        <div class="empty-illustration" aria-hidden="true">🔍</div>
+        <h3 class="state-title">Tidak Ada Produk Ditemukan</h3>
+        <p class="state-text" id="empty-message">Coba ubah kata kunci pencarian atau sesuaikan pilihan filter kategori Anda.</p>
+        <button id="btn-reset-filter" class="btn btn-secondary" type="button">Reset Pencarian & Filter</button>
+      </div>
+
+      <!-- Product Cards Grid -->
+      <div id="products-grid" class="products-grid" aria-live="polite" aria-busy="true">
+        <!-- Kartu produk akan di-render di sini secara dinamis oleh app.js -->
+      </div>
+    </section>
+
+    <!-- Favorites Section (Variasi Y = 2) -->
+    <section id="favorites" class="favorites-section" aria-labelledby="favorites-heading">
+      <div class="section-header">
+        <div>
+          <h2 id="favorites-heading" class="section-title">Daftar Produk Favorit Tersimpan</h2>
+          <p class="section-subtitle">
+            Fitur Bookmark (Variasi Y=2) menggunakan <code>localStorage</code> dengan kunci <code>rotiku_favorites</code>. Data tetap tersimpan rapi bahkan setelah peramban ditutup atau dimuat ulang (refresh).
+          </p>
+        </div>
+        <div class="favorites-actions">
+          <button id="btn-clear-favorites" class="btn btn-outline-danger btn-sm" type="button">
+            Hapus Semua Favorit
+          </button>
+        </div>
+      </div>
+
+      <!-- Dedicated Favorites Grid -->
+      <div id="favorites-grid" class="products-grid">
+        <!-- Produk favorit akan di-render di sini oleh JavaScript -->
+      </div>
+
+      <!-- Empty Favorites Container -->
+      <div id="favorites-empty" class="state-container empty-state" hidden>
+        <div class="empty-illustration" aria-hidden="true">🤍</div>
+        <h3 class="state-title">Belum Ada Produk yang Disimpan</h3>
+        <p class="state-text">Klik ikon hati pada kartu produk di katalog untuk menandainya sebagai favorit Anda.</p>
+        <a href="#catalog" class="btn btn-secondary">Jelajahi Katalog</a>
+      </div>
+    </section>
+
+    <!-- Product Notes Form Section (Variasi Z = 7) -->
+    <section id="notes" class="notes-section" aria-labelledby="notes-heading">
+      <div class="section-header">
+        <div>
+          <h2 id="notes-heading" class="section-title">Form Catatan Kurasi Produk</h2>
+          <p class="section-subtitle">
+            Fitur Validasi Form (Variasi Z=7). Masukkan evaluasi, ulasan, atau catatan pengadaan untuk produk pilihan. Sistem memvalidasi ketat agar catatan berisi <strong>minimal 30 karakter bersih</strong> (setelah spasi awal dan akhir dipotong/dibersihkan).
+          </p>
+        </div>
+      </div>
+
+      <div class="notes-layout">
+        <!-- Form Container -->
+        <div class="form-card">
+          <form id="note-form" class="note-form" novalidate>
+            <!-- Product Select -->
+            <div class="form-group">
+              <label for="note-product-select" class="form-label">
+                Pilih Produk <span class="required" aria-hidden="true">*</span>
+              </label>
+              <select id="note-product-select" class="form-select" required aria-required="true">
+                <option value="">-- Silakan Pilih Produk dari Data API --</option>
+              </select>
+              <span id="note-product-help" class="form-help">Pilihan produk otomatis disinkronkan dari hasil fetch API.</span>
+            </div>
+
+            <!-- Note Textarea -->
+            <div class="form-group">
+              <div class="label-with-counter">
+                <label for="note-text" class="form-label">
+                  Teks Catatan / Review Produk <span class="required" aria-hidden="true">*</span>
+                </label>
+                <div id="char-counter-container" class="char-counter" aria-live="polite">
+                  Karakter: <strong id="char-count">0</strong> / 30 minimal
+                </div>
+              </div>
+              <textarea 
+                id="note-text" 
+                class="form-textarea" 
+                rows="5" 
+                placeholder="Tuliskan catatan kurasi atau ulasan produk ini secara detail. Contoh: Produk ini memiliki kualitas material yang sangat halus dan cocok untuk koleksi etalase bakery kami..."
+                required 
+                aria-required="true"
+                aria-describedby="char-counter-container note-feedback"
+              ></textarea>
+              <span class="form-help">Spasi di awal dan akhir akan diabaikan (trim) saat kalkulasi validasi minimal 30 karakter.</span>
+            </div>
+
+            <!-- Feedback Message Banner with aria-live -->
+            <div id="note-feedback" class="feedback-banner" role="status" aria-live="polite" hidden>
+              <!-- Dinamis diisi error/sukses oleh app.js -->
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+              <button type="submit" id="btn-save-note" class="btn btn-primary">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span>Simpan Catatan Produk</span>
+              </button>
+              <button type="reset" id="btn-reset-note" class="btn btn-secondary">
+                Bersihkan Form
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Saved Notes List Container -->
+        <div class="saved-notes-card">
+          <div class="saved-notes-header">
+            <h3 class="saved-notes-title">Daftar Catatan Tersimpan</h3>
+            <span id="saved-notes-count" class="badge-pill">0 Catatan</span>
+          </div>
+          <p class="saved-notes-desc">Catatan disimpan di <code>localStorage</code> (kunci: <code>rotiku_notes</code>) untuk kenyamanan evaluasi kurasi.</p>
+          
+          <div id="saved-notes-list" class="saved-notes-list" aria-live="polite">
+            <div class="empty-notes-hint">
+              <span aria-hidden="true">📝</span>
+              <p>Belum ada catatan yang disimpan. Silakan buat catatan minimal 30 karakter pada formulir di sebelah kiri.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-col brand-col">
+        <div class="footer-brand">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 14.5C4 11 7 8 12 8s8 3 8 6.5c0 2-1 3.5-3 3.5H7c-2 0-3-1.5-3-3.5Z"/>
+            <path d="M7 11c1-1.5 2.5-2 5-2s4 .5 5 2"/>
+            <path d="M9 14.5c.5-1 1.5-1.5 3-1.5s2.5.5 3 1.5"/>
+            <path d="M6 18h12"/>
+          </svg>
+          <span class="footer-title">RotiKu</span>
+        </div>
+        <p class="footer-desc">
+          Aplikasi Interactive Product Dashboard bertema bakery. Disusun untuk memenuhi Penilaian Tengah Semester (PTS) Mata Kuliah Pemrograman Web.
+        </p>
+      </div>
+
+      <div class="footer-col meta-col">
+        <h4 class="footer-heading">Identitas Mahasiswa</h4>
+        <ul class="footer-list">
+          <li><strong>Nama:</strong> Fitri</li>
+          <li><strong>NIM:</strong> 2440304027</li>
+          <li><strong>Kelas:</strong> TI-5A / [Kelas: Pemrograman Web - Kelas B]</li>
+          <li><strong>Mata Kuliah:</strong> Pemrograman Web</li>
+        </ul>
+      </div>
+
+      <div class="footer-col spec-col">
+        <h4 class="footer-heading">Variasi & Spesifikasi PTS</h4>
+        <ul class="footer-list">
+          <li><strong>X = 0:</strong> Dataset Products (DummyJSON API)</li>
+          <li><strong>Y = 2:</strong> Favorite / Bookmark dengan localStorage</li>
+          <li><strong>Z = 7:</strong> Validasi Catatan Minimal 30 Karakter</li>
+          <li><strong>S = 9, C = 1:</strong> Retry Fetch & Waktu Muat Terakhir</li>
+          <li><strong>Batas Pengumpulan:</strong> 16 Oktober 2026, 23.59 WITA</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 RotiKu — Dibuat dengan bangga oleh <strong>Fitri (2440304027)</strong>. Menggunakan HTML5, Vanilla CSS3, & Modern Vanilla JavaScript.</p>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container for Quick Alerts -->
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/storage.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
