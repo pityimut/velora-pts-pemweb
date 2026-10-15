@@ -448,6 +448,216 @@
   }
 
   /**
+   * Mengisi pilihan produk pada formulir catatan (Variasi Z = 7)
+   * Disinkronkan langsung dari data REST API yang berhasil dimuat
+   */
+  function populateNoteProductDropdown() {
+    if (!DOM.noteProductSelect) return;
+
+    DOM.noteProductSelect.innerHTML = '<option value="">-- Silakan Pilih Produk dari Data API --</option>';
+
+    if (state.products.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.disabled = true;
+      opt.textContent = 'Belum ada produk termuat dari API';
+      DOM.noteProductSelect.appendChild(opt);
+      return;
+    }
+
+    state.products.forEach((p) => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `${p.title} (ID: #${p.id} - ${currencyFormatter.format(Number(p.price) || 0)})`;
+      DOM.noteProductSelect.appendChild(opt);
+    });
+  }
+
+  /**
+   * Menampilkan pesan umpan balik validasi formulir catatan (Error / Success)
+   * Menggunakan container dengan atribut aria-live="polite" untuk aksesibilitas
+   *
+   * @param {'success'|'error'} type
+   * @param {string} message
+   */
+  function setNoteFeedback(type, message) {
+    if (!DOM.noteFeedback) return;
+
+    DOM.noteFeedback.hidden = false;
+    DOM.noteFeedback.className = `feedback-banner feedback-${type}`;
+    const icon = type === 'success' ? '✅' : '⚠️';
+    DOM.noteFeedback.innerHTML = `
+      <span class="feedback-icon" aria-hidden="true">${icon}</span>
+      <div class="feedback-text">
+        <strong>${type === 'success' ? 'Berhasil:' : 'Validasi Gagal:'}</strong> ${escapeHTML(message)}
+      </div>
+    `;
+  }
+
+  /**
+   * Membersihkan kotak umpan balik formulir catatan
+   */
+  function clearNoteFeedback() {
+    if (!DOM.noteFeedback) return;
+    DOM.noteFeedback.hidden = true;
+    DOM.noteFeedback.innerHTML = '';
+    DOM.noteFeedback.className = 'feedback-banner';
+  }
+
+  /**
+   * Menghitung karakter secara real-time saat pengguna mengetik di textarea
+   * Variasi Z = 7: Menghitung karakter bersih (setelah .trim())
+   */
+  function handleNoteTextareaInput() {
+    if (!DOM.noteText || !DOM.charCount || !DOM.charCounterContainer) return;
+
+    const raw = DOM.noteText.value || '';
+    const cleanLength = raw.trim().length;
+
+    DOM.charCount.textContent = cleanLength;
+
+    if (cleanLength >= 30) {
+      DOM.charCounterContainer.className = 'char-counter valid';
+      DOM.charCounterContainer.innerHTML = `Karakter: <strong id="char-count">${cleanLength}</strong> / 30 minimal (✓ Memenuhi syarat)`;
+    } else {
+      DOM.charCounterContainer.className = 'char-counter invalid';
+      const remaining = 30 - cleanLength;
+      DOM.charCounterContainer.innerHTML = `Karakter: <strong id="char-count">${cleanLength}</strong> / 30 minimal (${remaining} lagi)`;
+    }
+  }
+
+  /**
+   * Merender daftar catatan produk tersimpan dari localStorage
+   */
+  function renderSavedNotes() {
+    if (!DOM.savedNotesList) return;
+
+    const notes = window.RotiKuStorage.getNotes();
+
+    if (DOM.savedNotesCount) {
+      DOM.savedNotesCount.textContent = `${notes.length} Catatan`;
+    }
+
+    DOM.savedNotesList.innerHTML = '';
+
+    if (notes.length === 0) {
+      DOM.savedNotesList.innerHTML = `
+        <div class="empty-notes-hint">
+          <span aria-hidden="true">📝</span>
+          <p>Belum ada catatan yang disimpan. Silakan buat catatan minimal 30 karakter pada formulir di sebelah kiri.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    notes.forEach((item) => {
+      const card = document.createElement('article');
+      card.className = 'note-item';
+      card.setAttribute('data-note-id', item.id);
+
+      const createdDate = item.createdAt
+        ? new Date(item.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+        : 'Waktu tidak tercatat';
+
+      card.innerHTML = `
+        <div class="note-item-header">
+          <h4 class="note-item-product">${escapeHTML(item.productTitle)}</h4>
+          <button 
+            type="button" 
+            class="btn-delete-note" 
+            data-note-id="${item.id}"
+            aria-label="Hapus catatan untuk ${escapeHTML(item.productTitle)}"
+            title="Hapus catatan"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              <line x1="10" y1="11" x2="10" y2="17"/>
+              <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+          </button>
+        </div>
+        <p class="note-item-content">${escapeHTML(item.text)}</p>
+        <div class="note-item-meta">
+          <span>Panjang: <strong>${item.charCount}</strong> karakter</span>
+          <time datetime="${item.createdAt}">${createdDate}</time>
+        </div>
+      `;
+      fragment.appendChild(card);
+    });
+
+    DOM.savedNotesList.appendChild(fragment);
+  }
+
+  /**
+   * Menangani pengiriman form catatan produk (Variasi Z = 7)
+   * Melakukan validasi ketat:
+   * 1. Produk wajib dipilih dari data API
+   * 2. Catatan wajib minimal 30 karakter setelah di-trim()
+   * 3. Jika tidak valid, gagalkan proses simpan dan tampilkan pesan kesalahan deskriptif
+   *
+   * @param {Event} e
+   */
+  function handleNoteFormSubmit(e) {
+    e.preventDefault();
+    clearNoteFeedback();
+
+    const productId = DOM.noteProductSelect ? DOM.noteProductSelect.value : '';
+    const rawText = DOM.noteText ? DOM.noteText.value : '';
+    const cleanText = rawText.trim();
+
+    // 1. Validasi Pemilihan Produk
+    if (!productId) {
+      setNoteFeedback('error', 'Silakan pilih salah satu produk dari data REST API terlebih dahulu.');
+      if (DOM.noteProductSelect) DOM.noteProductSelect.focus();
+      return;
+    }
+
+    // 2. Validasi Panjang Karakter Bersih Minimal 30 (Variasi Z = 7)
+    if (cleanText.length < 30) {
+      const remaining = 30 - cleanText.length;
+      setNoteFeedback(
+        'error',
+        `Catatan harus berisi minimal 30 karakter setelah spasi di awal dan akhir dibersihkan. Saat ini baru berisi ${cleanText.length} karakter (kurang ${remaining} karakter).`
+      );
+      if (DOM.noteText) DOM.noteText.focus();
+      return;
+    }
+
+    // Cari nama produk
+    const product = state.products.find((p) => String(p.id) === String(productId));
+    const productTitle = product ? product.title : `Produk #${productId}`;
+
+    // 3. Simpan Catatan Valid ke Storage
+    const saveSuccess = window.RotiKuStorage.saveNote({
+      productId,
+      productTitle,
+      text: cleanText,
+      charCount: cleanText.length,
+    });
+
+    if (saveSuccess) {
+      setNoteFeedback(
+        'success',
+        `Catatan untuk "${productTitle}" (${cleanText.length} karakter) berhasil divalidasi dan disimpan!`
+      );
+
+      // Reset form
+      if (DOM.noteText) DOM.noteText.value = '';
+      if (DOM.noteProductSelect) DOM.noteProductSelect.value = '';
+      handleNoteTextareaInput();
+
+      // Render ulang daftar catatan
+      renderSavedNotes();
+
+      showToast(`Catatan untuk "${productTitle}" berhasil disimpan!`, 'success');
+    } else {
+      setNoteFeedback('error', 'Terjadi kesalahan sistem saat menyimpan catatan ke penyimpanan lokal.');
+      showToast('Gagal menyimpan catatan.', 'error');
+    }
+  }
+
+  /**
    * Memperbarui angka counter pada tab dan navigasi
    */
   function updateCountBadges() {
@@ -480,7 +690,13 @@
     if (DOM.apiStatusText) {
       DOM.apiStatusText.textContent = isRetry ? 'Mencoba kembali memuat data...' : 'Memuat data dari REST API...';
     }
-    if (DOM.btnRetry) DOM.btnRetry.hidden = true;
+    if (DOM.btnRetry) {
+      DOM.btnRetry.hidden = true;
+      DOM.btnRetry.disabled = true;
+    }
+    if (DOM.btnErrorRetry) {
+      DOM.btnErrorRetry.disabled = true;
+    }
     if (DOM.connectionAlert) DOM.connectionAlert.hidden = true;
 
     try {
@@ -519,11 +735,17 @@
       // Populate filter kategori
       populateCategoryOptions();
 
+      // Populate pilihan produk pada form catatan (Variasi Z = 7)
+      populateNoteProductDropdown();
+
       // Render katalog
       applyFiltersAndSort();
 
       // Render bagian produk favorit tersimpan
       renderFavoritesSection();
+
+      // Render daftar catatan kurasi produk tersimpan
+      renderSavedNotes();
 
       if (isRetry) {
         showToast('Data produk berhasil dimuat kembali!', 'success');
@@ -565,6 +787,8 @@
       showToast(`Gagal memuat data: ${state.errorMessage}`, 'error');
     } finally {
       state.isLoading = false;
+      if (DOM.btnRetry) DOM.btnRetry.disabled = false;
+      if (DOM.btnErrorRetry) DOM.btnErrorRetry.disabled = false;
     }
   }
 
@@ -687,11 +911,44 @@
         }
       });
     }
+
+    // Formulir Catatan Produk (Variasi Z = 7)
+    if (DOM.noteText) {
+      DOM.noteText.addEventListener('input', handleNoteTextareaInput);
+    }
+
+    if (DOM.noteForm) {
+      DOM.noteForm.addEventListener('submit', handleNoteFormSubmit);
+    }
+
+    if (DOM.btnResetNote) {
+      DOM.btnResetNote.addEventListener('click', () => {
+        clearNoteFeedback();
+        setTimeout(handleNoteTextareaInput, 10);
+      });
+    }
+
+    // Event Delegation: Hapus Catatan Tersimpan
+    if (DOM.savedNotesList) {
+      DOM.savedNotesList.addEventListener('click', (e) => {
+        const delBtn = e.target.closest('.btn-delete-note');
+        if (delBtn) {
+          const noteId = delBtn.getAttribute('data-note-id');
+          if (noteId && window.confirm('Apakah Anda yakin ingin menghapus catatan produk ini?')) {
+            window.RotiKuStorage.deleteNote(noteId);
+            renderSavedNotes();
+            showToast('Catatan produk berhasil dihapus.', 'info');
+          }
+        }
+      });
+    }
   }
 
   // Inisialisasi Aplikasi saat DOM Siap
   document.addEventListener('DOMContentLoaded', () => {
     setupInitialListeners();
+    handleNoteTextareaInput();
+    renderSavedNotes();
     loadProducts();
   });
 
