@@ -291,6 +291,65 @@
   }
 
   /**
+   * Menghitung dan merender 4 statistik produk secara dinamis menggunakan Array methods:
+   * 1. Total produk: Array.length
+   * 2. Rata-rata harga: reduce() dengan penanganan aman untuk array kosong (mencegah NaN)
+   * 3. Produk harga tertinggi: reduce() untuk mencari produk termahal
+   * 4. Jumlah kategori unik: map() + filter() + new Set()
+   *
+   * @param {Array<Object>} productsList
+   */
+  function calculateAndRenderStatistics(productsList = []) {
+    const list = Array.isArray(productsList) ? productsList : [];
+    const count = list.length;
+
+    // 1. Total Produk
+    if (DOM.statTotalProducts) {
+      DOM.statTotalProducts.textContent = count.toLocaleString('id-ID');
+    }
+
+    // 2. Rata-rata Harga (menggunakan reduce, hindari pembagian 0)
+    let avgPrice = 0;
+    if (count > 0) {
+      const totalPrice = list.reduce((accumulator, item) => {
+        const priceNum = Number(item.price) || 0;
+        return accumulator + priceNum;
+      }, 0);
+      avgPrice = totalPrice / count;
+    }
+
+    if (DOM.statAvgPrice) {
+      DOM.statAvgPrice.textContent = currencyFormatter.format(avgPrice);
+    }
+
+    // 3. Produk dengan Harga Tertinggi (menggunakan reduce)
+    let maxProduct = null;
+    if (count > 0) {
+      maxProduct = list.reduce((highest, current) => {
+        const highestVal = Number(highest.price) || 0;
+        const currentVal = Number(current.price) || 0;
+        return currentVal > highestVal ? current : highest;
+      }, list[0]);
+    }
+
+    if (DOM.statMaxPrice) {
+      DOM.statMaxPrice.textContent = maxProduct ? currencyFormatter.format(Number(maxProduct.price) || 0) : '$0.00';
+    }
+    if (DOM.statMaxName) {
+      DOM.statMaxName.textContent = maxProduct ? maxProduct.title || 'Produk' : 'Tidak ada produk';
+      DOM.statMaxName.title = maxProduct ? `${maxProduct.title} (${currencyFormatter.format(Number(maxProduct.price) || 0)})` : '';
+    }
+
+    // 4. Jumlah Kategori Unik (menggunakan map + filter + Set)
+    const validCategories = list.map((p) => p.category).filter((cat) => typeof cat === 'string' && cat.trim() !== '');
+    const uniqueCategoryCount = new Set(validCategories).size;
+
+    if (DOM.statUniqueCategories) {
+      DOM.statUniqueCategories.textContent = uniqueCategoryCount.toLocaleString('id-ID');
+    }
+  }
+
+  /**
    * Mengisi dropdown opsi kategori di toolbar
    */
   function populateCategoryOptions() {
@@ -374,6 +433,9 @@
 
       // Sembunyikan loading
       if (DOM.catalogLoading) DOM.catalogLoading.hidden = true;
+
+      // Hitung dan render 4 statistik produk secara dinamis
+      calculateAndRenderStatistics(state.products);
 
       // Populate filter kategori
       populateCategoryOptions();
