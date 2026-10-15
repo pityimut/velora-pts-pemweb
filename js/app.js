@@ -245,6 +245,85 @@
   }
 
   /**
+   * Render bagian khusus favorit (#favorites-grid)
+   * Mengambil data favorit dari localStorage via RotiKuStorage
+   */
+  function renderFavoritesSection() {
+    if (!DOM.favoritesGrid || !DOM.favoritesEmpty) return;
+
+    const favIds = window.RotiKuStorage.getFavorites();
+
+    // Saring produk favorit dari data state.products yang sudah dimuat
+    const favProducts = state.products.filter((p) => favIds.some((id) => String(id) === String(p.id)));
+
+    DOM.favoritesGrid.innerHTML = '';
+
+    if (favProducts.length === 0) {
+      DOM.favoritesGrid.style.display = 'none';
+      DOM.favoritesEmpty.hidden = false;
+    } else {
+      DOM.favoritesEmpty.hidden = true;
+      DOM.favoritesGrid.style.display = 'grid';
+
+      const fragment = document.createDocumentFragment();
+      favProducts.forEach((product) => {
+        const card = createProductCard(product, true);
+        fragment.appendChild(card);
+      });
+      DOM.favoritesGrid.appendChild(fragment);
+    }
+  }
+
+  /**
+   * Menangani aksi klik toggle favorit (Tambah / Hapus)
+   * Menyimpan ke localStorage dan memperbarui UI secara reaktif tanpa re-fetch API
+   *
+   * @param {number|string} productId
+   */
+  function handleFavoriteToggle(productId) {
+    const product = state.products.find((p) => String(p.id) === String(productId));
+    const title = product ? product.title : `Produk #${productId}`;
+
+    const result = window.RotiKuStorage.toggleFavorite(productId);
+
+    if (result.success) {
+      // 1. Update counter badges
+      updateCountBadges();
+
+      // 2. Perbarui visual tombol favorit di semua kartu yang ada di layar
+      const favButtons = document.querySelectorAll(`.btn-fav-toggle[data-id="${productId}"]`);
+      favButtons.forEach((btn) => {
+        if (result.isFav) {
+          btn.classList.add('is-favorite');
+          btn.setAttribute('aria-label', `Hapus ${title} dari favorit`);
+          btn.setAttribute('title', 'Hapus dari favorit');
+        } else {
+          btn.classList.remove('is-favorite');
+          btn.setAttribute('aria-label', `Tambahkan ${title} ke favorit`);
+          btn.setAttribute('title', 'Tambah ke favorit');
+        }
+      });
+
+      // 3. Render ulang section favorit
+      renderFavoritesSection();
+
+      // 4. Jika pengguna sedang berada di tab 'Favorit Saya' pada katalog, render ulang grid katalog
+      if (state.activeTab === 'favorites') {
+        renderProductsGrid();
+      }
+
+      // 5. Beri feedback notifikasi toast yang ramah
+      if (result.isFav) {
+        showToast(`⭐ "${title}" ditambahkan ke favorit!`, 'success');
+      } else {
+        showToast(`🗑️ "${title}" dihapus dari favorit.`, 'info');
+      }
+    } else {
+      showToast('Gagal memperbarui favorit di penyimpanan lokal.', 'error');
+    }
+  }
+
+  /**
    * Filter, search, and sort logic
    */
   function applyFiltersAndSort() {
@@ -443,6 +522,9 @@
       // Render katalog
       applyFiltersAndSort();
 
+      // Render bagian produk favorit tersimpan
+      renderFavoritesSection();
+
       if (isRetry) {
         showToast('Data produk berhasil dimuat kembali!', 'success');
       }
@@ -557,6 +639,52 @@
         DOM.tabAll.classList.remove('active');
         DOM.tabAll.setAttribute('aria-selected', 'false');
         renderProductsGrid();
+      });
+    }
+
+    // Event Delegation: Toggle Favorit pada Katalog Grid
+    if (DOM.productsGrid) {
+      DOM.productsGrid.addEventListener('click', (e) => {
+        const favBtn = e.target.closest('.btn-fav-toggle');
+        if (favBtn) {
+          const productId = favBtn.getAttribute('data-id');
+          if (productId) {
+            handleFavoriteToggle(productId);
+          }
+        }
+      });
+    }
+
+    // Event Delegation: Toggle Favorit pada Section Favorit Grid
+    if (DOM.favoritesGrid) {
+      DOM.favoritesGrid.addEventListener('click', (e) => {
+        const favBtn = e.target.closest('.btn-fav-toggle');
+        if (favBtn) {
+          const productId = favBtn.getAttribute('data-id');
+          if (productId) {
+            handleFavoriteToggle(productId);
+          }
+        }
+      });
+    }
+
+    // Tombol Hapus Semua Favorit
+    if (DOM.btnClearFavorites) {
+      DOM.btnClearFavorites.addEventListener('click', () => {
+        const currentFavs = window.RotiKuStorage.getFavorites();
+        if (currentFavs.length === 0) {
+          showToast('Daftar favorit sudah dalam keadaan kosong.', 'info');
+          return;
+        }
+
+        const confirmClear = window.confirm('Apakah Anda yakin ingin menghapus semua produk dari daftar favorit?');
+        if (confirmClear) {
+          window.RotiKuStorage.clearAllFavorites();
+          updateCountBadges();
+          renderFavoritesSection();
+          renderProductsGrid();
+          showToast('Seluruh daftar favorit berhasil dibersihkan.', 'info');
+        }
       });
     }
   }
