@@ -1,12 +1,15 @@
 /**
- * RotiKu — Main Application Controller
+ * Velora — Main Application Controller
  * Author: Fitri (NIM: 2440304027)
- * Tugas PTS Pemrograman Web
- * Interactive Product Dashboard bertema Bakery
+ * Tugas PTS Pemrograman Web — Variasi 027
+ * Interactive Product Dashboard — Minimalist White & Lavender
  */
 
 (function (window, document) {
   'use strict';
+
+  // Kurs konversi acuan USD ke Rupiah untuk menampilkan harga Rupiah dari API DummyJSON
+  const USD_TO_IDR_RATE = 16000;
 
   // State Terpusat Aplikasi (Single Source of Truth)
   const state = {
@@ -56,6 +59,8 @@
     catalogError: document.getElementById('catalog-error'),
     errorMessage: document.getElementById('error-message'),
     catalogEmpty: document.getElementById('catalog-empty'),
+    catalogEmptyTitle: document.getElementById('catalog-empty-title'),
+    emptyMessage: document.getElementById('empty-message'),
     productsGrid: document.getElementById('products-grid'),
 
     // Favorites Section
@@ -80,8 +85,16 @@
   };
 
   /**
+   * Helper: Format mata uang Rupiah (IDR)
+   */
+  const rupiahFormatter = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  });
+
+  /**
    * Helper: Format mata uang USD dengan Intl.NumberFormat
-   * Catatan: Data DummyJSON menggunakan nilai harga USD.
    */
   const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -146,61 +159,63 @@
     const card = document.createElement('article');
     card.className = 'product-card';
     card.setAttribute('data-id', product.id);
-
-    // Image fallback jika thumbnail kosong atau rusak
-    const safeTitle = escapeHTML(product.title || 'Produk Tanpa Nama');
-    const safeCategory = escapeHTML(product.category || 'General');
-    const safeDesc = escapeHTML(product.description || 'Tidak ada deskripsi yang tersedia untuk produk ini.');
-    const formattedPrice = currencyFormatter.format(Number(product.price) || 0);
-    const ratingValue = Number(product.rating || 0).toFixed(1);
+    const title = typeof product.title === 'string' ? product.title : 'Produk Tanpa Nama';
+    const category = typeof product.category === 'string' ? product.category : 'Lainnya';
+    const priceUSD = Number(product.price) || 0;
+    const priceIDR = priceUSD * USD_TO_IDR_RATE;
     const imageUrl = product.thumbnail || (Array.isArray(product.images) && product.images[0]) || '';
 
-    card.innerHTML = `
-      <div class="product-media-wrapper">
-        <span class="product-category-tag">${safeCategory}</span>
-        <button 
-          type="button" 
-          class="btn-fav-toggle ${isFav ? 'is-favorite' : ''}" 
-          data-id="${product.id}"
-          aria-label="${isFav ? 'Hapus ' + safeTitle + ' dari favorit' : 'Tambahkan ' + safeTitle + ' ke favorit'}"
-          title="${isFav ? 'Hapus dari favorit' : 'Tambah ke favorit'}"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-          </svg>
-        </button>
-        ${
-          imageUrl
-            ? `<img 
-                src="${imageUrl}" 
-                alt="Foto produk ${safeTitle}" 
-                class="product-thumbnail" 
-                loading="lazy"
-                onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'image-fallback\\'><svg viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\'><rect width=\\'18\\' height=\\'18\\' x=\\'3\\' y=\\'3\\' rx=\\'2\\'/><circle cx=\\'9\\' cy=\\'9\\' r=\\'2\\'/><path d=\\'m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\\'/></svg><span>Foto tidak dapat dimuat</span></div>';"
-              >`
-            : `<div class="image-fallback">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                <span>Foto tidak tersedia</span>
-              </div>`
-        }
-      </div>
-      <div class="product-body">
-        <h3 class="product-title" title="${safeTitle}">${safeTitle}</h3>
-        <div class="product-rating" aria-label="Rating ${ratingValue} dari 5">
-          <span class="rating-stars" aria-hidden="true">${renderRatingStars(product.rating)}</span>
-          <span class="rating-value">${ratingValue}</span>
-          <span class="rating-stock">(${product.stock || 0} stok)</span>
-        </div>
-        <p class="product-desc">${safeDesc}</p>
-        <div class="product-footer">
-          <div class="product-price-box">
-            <span class="price-label">Harga API</span>
-            <span class="product-price">${formattedPrice}</span>
-          </div>
-          <span class="product-id-tag">ID: #${product.id}</span>
-        </div>
-      </div>
-    `;
+    const media = document.createElement('div');
+    media.className = 'product-media-wrapper';
+    const categoryTag = document.createElement('span');
+    categoryTag.className = 'product-category-tag';
+    categoryTag.textContent = category;
+    media.appendChild(categoryTag);
+
+    const favoriteButton = document.createElement('button');
+    favoriteButton.type = 'button';
+    favoriteButton.className = `btn-fav-toggle${isFav ? ' is-favorite' : ''}`;
+    favoriteButton.dataset.id = product.id;
+    favoriteButton.setAttribute('aria-label', `${isFav ? 'Hapus dari' : 'Tambahkan ke'} favorit: ${title}`);
+    favoriteButton.setAttribute('aria-pressed', String(isFav));
+    favoriteButton.title = isFav ? 'Hapus dari favorit' : 'Tambahkan ke favorit';
+    favoriteButton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>';
+    media.appendChild(favoriteButton);
+
+    const showImageFallback = () => {
+      const fallback = document.createElement('div');
+      fallback.className = 'image-fallback';
+      fallback.textContent = 'Gambar tidak tersedia';
+      return fallback;
+    };
+
+    if (imageUrl) {
+      const image = document.createElement('img');
+      image.className = 'product-thumbnail';
+      image.src = imageUrl;
+      image.alt = title;
+      image.loading = 'lazy';
+      image.addEventListener('error', () => image.replaceWith(showImageFallback()), { once: true });
+      media.appendChild(image);
+    } else {
+      media.appendChild(showImageFallback());
+    }
+
+    const body = document.createElement('div');
+    body.className = 'product-body';
+    const heading = document.createElement('h3');
+    heading.className = 'product-title';
+    heading.textContent = title;
+
+    const footer = document.createElement('div');
+    footer.className = 'product-footer';
+    const price = document.createElement('span');
+    price.className = 'product-price';
+    price.textContent = rupiahFormatter.format(priceIDR);
+    footer.append(price);
+
+    body.append(heading, footer);
+    card.append(media, body);
 
     return card;
   }
@@ -216,7 +231,7 @@
     // Tentukan produk mana yang akan ditampilkan (All vs Favorites)
     let displayList = state.filteredProducts;
     if (state.activeTab === 'favorites') {
-      const favIds = window.RotiKuStorage.getFavorites();
+      const favIds = window.VeloraStorage.getFavorites();
       displayList = displayList.filter((p) => favIds.some((id) => String(id) === String(p.id)));
     }
 
@@ -224,11 +239,22 @@
     if (displayList.length === 0) {
       DOM.productsGrid.style.display = 'none';
       DOM.catalogEmpty.hidden = false;
+      const showingFavorites = state.activeTab === 'favorites';
+      if (DOM.catalogEmptyTitle) {
+        DOM.catalogEmptyTitle.textContent = showingFavorites ? 'Belum ada produk favorit' : 'Tidak ada produk ditemukan';
+      }
+      if (DOM.emptyMessage) {
+        DOM.emptyMessage.textContent = showingFavorites
+          ? 'Simpan produk dari katalog untuk melihatnya di sini.'
+          : 'Coba ubah kata kunci pencarian atau sesuaikan pilihan filter kategori Anda.';
+      }
+      if (DOM.btnResetFilter) DOM.btnResetFilter.hidden = showingFavorites;
     } else {
       DOM.catalogEmpty.hidden = true;
       DOM.productsGrid.style.display = 'grid';
+      if (DOM.btnResetFilter) DOM.btnResetFilter.hidden = false;
 
-      const favIds = window.RotiKuStorage.getFavorites();
+      const favIds = window.VeloraStorage.getFavorites();
       const fragment = document.createDocumentFragment();
 
       displayList.forEach((product) => {
@@ -246,12 +272,12 @@
 
   /**
    * Render bagian khusus favorit (#favorites-grid)
-   * Mengambil data favorit dari localStorage via RotiKuStorage
+   * Mengambil data favorit dari localStorage via VeloraStorage
    */
   function renderFavoritesSection() {
     if (!DOM.favoritesGrid || !DOM.favoritesEmpty) return;
 
-    const favIds = window.RotiKuStorage.getFavorites();
+    const favIds = window.VeloraStorage.getFavorites();
 
     // Saring produk favorit dari data state.products yang sudah dimuat
     const favProducts = state.products.filter((p) => favIds.some((id) => String(id) === String(p.id)));
@@ -284,7 +310,7 @@
     const product = state.products.find((p) => String(p.id) === String(productId));
     const title = product ? product.title : `Produk #${productId}`;
 
-    const result = window.RotiKuStorage.toggleFavorite(productId);
+    const result = window.VeloraStorage.toggleFavorite(productId);
 
     if (result.success) {
       // 1. Update counter badges
@@ -295,12 +321,14 @@
       favButtons.forEach((btn) => {
         if (result.isFav) {
           btn.classList.add('is-favorite');
-          btn.setAttribute('aria-label', `Hapus ${title} dari favorit`);
+          btn.setAttribute('aria-pressed', 'true');
+          btn.setAttribute('aria-label', `Hapus dari favorit: ${title}`);
           btn.setAttribute('title', 'Hapus dari favorit');
         } else {
           btn.classList.remove('is-favorite');
-          btn.setAttribute('aria-label', `Tambahkan ${title} ke favorit`);
-          btn.setAttribute('title', 'Tambah ke favorit');
+          btn.setAttribute('aria-pressed', 'false');
+          btn.setAttribute('aria-label', `Tambahkan ke favorit: ${title}`);
+          btn.setAttribute('title', 'Tambahkan ke favorit');
         }
       });
 
@@ -398,7 +426,8 @@
     }
 
     if (DOM.statAvgPrice) {
-      DOM.statAvgPrice.textContent = currencyFormatter.format(avgPrice);
+      DOM.statAvgPrice.textContent = rupiahFormatter.format(avgPrice * USD_TO_IDR_RATE);
+      DOM.statAvgPrice.title = `Rata-rata: ${currencyFormatter.format(avgPrice)}`;
     }
 
     // 3. Produk dengan Harga Tertinggi (menggunakan reduce)
@@ -412,11 +441,13 @@
     }
 
     if (DOM.statMaxPrice) {
-      DOM.statMaxPrice.textContent = maxProduct ? currencyFormatter.format(Number(maxProduct.price) || 0) : '$0.00';
+      DOM.statMaxPrice.textContent = maxProduct ? rupiahFormatter.format((Number(maxProduct.price) || 0) * USD_TO_IDR_RATE) : 'Rp 0';
     }
     if (DOM.statMaxName) {
+      const maxIdr = maxProduct ? rupiahFormatter.format((Number(maxProduct.price) || 0) * USD_TO_IDR_RATE) : '';
+      const maxUsd = maxProduct ? currencyFormatter.format(Number(maxProduct.price) || 0) : '';
       DOM.statMaxName.textContent = maxProduct ? maxProduct.title || 'Produk' : 'Tidak ada produk';
-      DOM.statMaxName.title = maxProduct ? `${maxProduct.title} (${currencyFormatter.format(Number(maxProduct.price) || 0)})` : '';
+      DOM.statMaxName.title = maxProduct ? `${maxProduct.title} (${maxIdr} / ${maxUsd})` : '';
     }
 
     // 4. Jumlah Kategori Unik (menggunakan map + filter + Set)
@@ -468,7 +499,8 @@
     state.products.forEach((p) => {
       const opt = document.createElement('option');
       opt.value = p.id;
-      opt.textContent = `${p.title} (ID: #${p.id} - ${currencyFormatter.format(Number(p.price) || 0)})`;
+      const priceIdr = rupiahFormatter.format((Number(p.price) || 0) * USD_TO_IDR_RATE);
+      opt.textContent = `${p.title} (ID: #${p.id} - ${priceIdr})`;
       DOM.noteProductSelect.appendChild(opt);
     });
   }
@@ -532,7 +564,7 @@
   function renderSavedNotes() {
     if (!DOM.savedNotesList) return;
 
-    const notes = window.RotiKuStorage.getNotes();
+    const notes = window.VeloraStorage.getNotes();
 
     if (DOM.savedNotesCount) {
       DOM.savedNotesCount.textContent = `${notes.length} Catatan`;
@@ -543,8 +575,7 @@
     if (notes.length === 0) {
       DOM.savedNotesList.innerHTML = `
         <div class="empty-notes-hint">
-          <span aria-hidden="true">📝</span>
-          <p>Belum ada catatan yang disimpan. Silakan buat catatan minimal 30 karakter pada formulir di sebelah kiri.</p>
+          <p>Belum ada catatan tersimpan.</p>
         </div>
       `;
       return;
@@ -629,7 +660,7 @@
     const productTitle = product ? product.title : `Produk #${productId}`;
 
     // 3. Simpan Catatan Valid ke Storage
-    const saveSuccess = window.RotiKuStorage.saveNote({
+    const saveSuccess = window.VeloraStorage.saveNote({
       productId,
       productTitle,
       text: cleanText,
@@ -662,7 +693,7 @@
    */
   function updateCountBadges() {
     const totalCount = state.products.length;
-    const favIds = window.RotiKuStorage.getFavorites();
+    const favIds = window.VeloraStorage.getFavorites();
     const favCount = favIds.length;
 
     if (DOM.countAllBadge) DOM.countAllBadge.textContent = totalCount;
@@ -671,63 +702,90 @@
   }
 
   /**
-   * Mengambil data produk dari API dengan state loading, success, error
+   * Mengambil data produk dari API dengan state loading, success, error.
+   * Menangani kondisi:
+   * 1. Status sukses dan error banner tidak pernah muncul bersamaan.
+   * 2. Jika pembaruan gagal tetapi data lama ada, pertahankan data lama dan beri tahu bahwa update gagal.
+   * 3. Waktu terakhir sukses hanya diperbarui setelah respons berhasil diproses.
+   * 4. Tombol Retry melakukan fetch ulang ke endpoint DummyJSON.
    */
   async function loadProducts(isRetry = false) {
     state.isLoading = true;
     state.errorMessage = null;
+    if (DOM.productsGrid) DOM.productsGrid.setAttribute('aria-busy', 'true');
 
-    // Tampilkan Loading State di UI
-    if (DOM.catalogLoading) DOM.catalogLoading.hidden = false;
-    if (DOM.catalogError) DOM.catalogError.hidden = true;
-    if (DOM.catalogEmpty) DOM.catalogEmpty.hidden = true;
-    if (DOM.productsGrid) DOM.productsGrid.style.display = 'none';
+    const hasExistingData = Array.isArray(state.products) && state.products.length > 0;
 
-    // Perbarui Status Bar
+    // Reset banner peringatan jaringan dan error katalog saat memulai pemuatan baru
+    if (DOM.connectionAlert) {
+      DOM.connectionAlert.hidden = true;
+      DOM.connectionAlert.style.display = 'none';
+    }
+    if (DOM.catalogError) {
+      DOM.catalogError.hidden = true;
+      DOM.catalogError.style.display = 'none';
+    }
+    if (DOM.catalogEmpty) {
+      DOM.catalogEmpty.hidden = true;
+      DOM.catalogEmpty.style.display = 'none';
+    }
+
+    // Jika belum ada data sama sekali, tampilkan spinner loading penuh
+    if (!hasExistingData) {
+      if (DOM.catalogLoading) {
+        DOM.catalogLoading.hidden = false;
+        DOM.catalogLoading.style.display = 'block';
+      }
+      if (DOM.productsGrid) DOM.productsGrid.style.display = 'none';
+    }
+
+    // Perbarui Status Bar ke kondisi loading
     if (DOM.apiStatusDot) {
       DOM.apiStatusDot.className = 'status-dot status-loading';
     }
     if (DOM.apiStatusText) {
-      DOM.apiStatusText.textContent = isRetry ? 'Mencoba kembali memuat data...' : 'Memuat data dari REST API...';
+      if (isRetry) {
+        DOM.apiStatusText.textContent = hasExistingData 
+          ? 'Mencoba kembali memperbarui data dari REST API...' 
+          : 'Mencoba kembali memuat data dari REST API...';
+      } else {
+        DOM.apiStatusText.textContent = hasExistingData
+          ? 'Memperbarui data produk dari REST API...'
+          : 'Memuat data dari REST API...';
+      }
     }
     if (DOM.btnRetry) {
       DOM.btnRetry.hidden = true;
+      DOM.btnRetry.style.display = 'none';
       DOM.btnRetry.disabled = true;
     }
     if (DOM.btnErrorRetry) {
       DOM.btnErrorRetry.disabled = true;
     }
-    if (DOM.connectionAlert) DOM.connectionAlert.hidden = true;
 
     try {
-      const data = await window.RotiKuAPI.fetchProducts();
+      // Pastikan Fetch benar-benar memanggil endpoint API
+      const data = await window.VeloraAPI.fetchProducts();
 
       // Simpan produk dalam state
       state.products = Array.isArray(data.products) ? data.products : [];
       state.filteredProducts = [...state.products];
 
-      // Challenge C = 1: Catat waktu hanya setelah Fetch dan JSON berhasil
-      const now = new Date();
-      state.lastSuccessfulLoad = now;
-      const formattedTimestamp = now.toLocaleString('id-ID', {
-        dateStyle: 'medium',
-        timeStyle: 'medium',
-      });
-
-      if (DOM.lastUpdatedTime) {
-        DOM.lastUpdatedTime.textContent = `${formattedTimestamp} WIB`;
+      // Pastikan peringatan jaringan dan tombol retry benar-benar tertutup saat berhasil
+      if (DOM.connectionAlert) {
+        DOM.connectionAlert.hidden = true;
+        DOM.connectionAlert.style.display = 'none';
       }
-
-      // Perbarui status koneksi
-      if (DOM.apiStatusDot) {
-        DOM.apiStatusDot.className = 'status-dot status-success';
-      }
-      if (DOM.apiStatusText) {
-        DOM.apiStatusText.textContent = `Berhasil (${state.products.length} produk termuat)`;
+      if (DOM.btnRetry) {
+        DOM.btnRetry.hidden = true;
+        DOM.btnRetry.style.display = 'none';
       }
 
       // Sembunyikan loading
-      if (DOM.catalogLoading) DOM.catalogLoading.hidden = true;
+      if (DOM.catalogLoading) {
+        DOM.catalogLoading.hidden = true;
+        DOM.catalogLoading.style.display = 'none';
+      }
 
       // Hitung dan render 4 statistik produk secara dinamis
       calculateAndRenderStatistics(state.products);
@@ -747,46 +805,96 @@
       // Render daftar catatan kurasi produk tersimpan
       renderSavedNotes();
 
+      // Catat waktu hanya setelah seluruh data berhasil diproses dan ditampilkan
+      const now = new Date();
+      state.lastSuccessfulLoad = now;
+      if (DOM.lastUpdatedTime) {
+        DOM.lastUpdatedTime.textContent = `${now.toLocaleString('id-ID', {
+          dateStyle: 'medium',
+          timeStyle: 'medium',
+          timeZone: 'Asia/Jakarta',
+        })} WIB`;
+      }
+      if (DOM.apiStatusDot) DOM.apiStatusDot.className = 'status-dot status-success';
+      if (DOM.apiStatusText) DOM.apiStatusText.textContent = `Berhasil (${state.products.length} produk termuat)`;
+      if (DOM.productsGrid) DOM.productsGrid.setAttribute('aria-busy', 'false');
+
       if (isRetry) {
-        showToast('Data produk berhasil dimuat kembali!', 'success');
+        showToast('Data produk berhasil diperbarui!', 'success');
       }
     } catch (err) {
-      console.error('[RotiKu App] Kesalahan saat mengambil produk:', err);
+      console.warn('[Velora App] Kesalahan saat mengambil produk:', err);
       state.errorMessage = err.message || 'Gagal memuat data dari server.';
 
       // Sembunyikan loading
-      if (DOM.catalogLoading) DOM.catalogLoading.hidden = true;
+      if (DOM.catalogLoading) {
+        DOM.catalogLoading.hidden = true;
+        DOM.catalogLoading.style.display = 'none';
+      }
 
-      // Tampilkan Error State
-      if (DOM.catalogError) {
-        DOM.catalogError.hidden = false;
-        if (DOM.errorMessage) {
-          DOM.errorMessage.textContent = state.errorMessage;
+      // Cek apakah data lama masih tersedia
+      const stillHasData = Array.isArray(state.products) && state.products.length > 0;
+
+      if (stillHasData) {
+        // DATA LAMA TETAP DIPERTAHANKAN
+        if (DOM.productsGrid) DOM.productsGrid.style.display = 'grid';
+        if (DOM.catalogError) {
+          DOM.catalogError.hidden = true;
+          DOM.catalogError.style.display = 'none';
         }
-      }
 
-      // Perbarui Status Bar menjadi error
-      if (DOM.apiStatusDot) {
-        DOM.apiStatusDot.className = 'status-dot status-error';
-      }
-      if (DOM.apiStatusText) {
-        DOM.apiStatusText.textContent = 'Koneksi API Gagal';
-      }
-
-      // Tampilkan tombol Retry (Challenge C = 1)
-      if (DOM.btnRetry) DOM.btnRetry.hidden = false;
-
-      // Banner peringatan jaringan
-      if (DOM.connectionAlert) {
-        DOM.connectionAlert.hidden = false;
-        if (DOM.connectionAlertMsg) {
-          DOM.connectionAlertMsg.textContent = state.errorMessage;
+        // Status bar menjelaskan bahwa pembaruan gagal dan menampilkan data sebelumnya
+        if (DOM.apiStatusDot) {
+          DOM.apiStatusDot.className = 'status-dot status-error';
         }
-      }
+        if (DOM.apiStatusText) {
+          DOM.apiStatusText.textContent = 'Gagal memperbarui data';
+        }
 
-      showToast(`Gagal memuat data: ${state.errorMessage}`, 'error');
+        // Tampilkan banner peringatan jaringan
+        if (DOM.connectionAlert) {
+          const alertTitle = document.getElementById('connection-alert-title');
+          if (alertTitle) alertTitle.textContent = 'Gagal memuat ulang data:';
+          if (DOM.connectionAlertMsg) {
+            DOM.connectionAlertMsg.textContent = state.errorMessage;
+          }
+          DOM.connectionAlert.hidden = false;
+          DOM.connectionAlert.style.display = 'flex';
+        }
+
+        // Tampilkan tombol Retry di status bar
+        if (DOM.btnRetry) {
+          DOM.btnRetry.hidden = false;
+          DOM.btnRetry.style.display = 'inline-flex';
+        }
+
+        showToast('Gagal memperbarui data. Menampilkan data sebelumnya.', 'error');
+      } else {
+        // BELUM ADA DATA SEBELUMNYA SAMA SEKALI
+        if (DOM.productsGrid) DOM.productsGrid.style.display = 'none';
+        if (DOM.catalogError) {
+          DOM.catalogError.hidden = false;
+          DOM.catalogError.style.display = 'block';
+          if (DOM.errorMessage) {
+            DOM.errorMessage.textContent = state.errorMessage;
+          }
+        }
+
+        // Perbarui Status Bar menjadi error
+        if (DOM.apiStatusDot) {
+          DOM.apiStatusDot.className = 'status-dot status-error';
+        }
+        if (DOM.apiStatusText) {
+          DOM.apiStatusText.textContent = 'Koneksi API Gagal';
+        }
+
+        if (DOM.btnRetry) DOM.btnRetry.hidden = true;
+
+        showToast(`Gagal memuat data: ${state.errorMessage}`, 'error');
+      }
     } finally {
       state.isLoading = false;
+      if (DOM.productsGrid) DOM.productsGrid.setAttribute('aria-busy', 'false');
       if (DOM.btnRetry) DOM.btnRetry.disabled = false;
       if (DOM.btnErrorRetry) DOM.btnErrorRetry.disabled = false;
     }
@@ -794,6 +902,25 @@
 
   // Setup Event Listeners Awal
   function setupInitialListeners() {
+    const navLinks = Array.from(document.querySelectorAll('.app-nav .nav-link'));
+    const updateActiveNavigation = (hash) => {
+      navLinks.forEach((link) => {
+        const isActive = link.getAttribute('href') === hash;
+        link.classList.toggle('active', isActive);
+        if (isActive) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    };
+
+    navLinks.forEach((link) => {
+      link.addEventListener('click', () => updateActiveNavigation(link.getAttribute('href')));
+    });
+    window.addEventListener('hashchange', () => updateActiveNavigation(window.location.hash));
+    if (window.location.hash) updateActiveNavigation(window.location.hash);
+
     // Retry button di status bar & error state
     if (DOM.btnRetry) {
       DOM.btnRetry.addEventListener('click', () => loadProducts(true));
@@ -848,9 +975,9 @@
       DOM.tabAll.addEventListener('click', () => {
         state.activeTab = 'all';
         DOM.tabAll.classList.add('active');
-        DOM.tabAll.setAttribute('aria-selected', 'true');
+        DOM.tabAll.setAttribute('aria-pressed', 'true');
         DOM.tabFav.classList.remove('active');
-        DOM.tabFav.setAttribute('aria-selected', 'false');
+        DOM.tabFav.setAttribute('aria-pressed', 'false');
         renderProductsGrid();
       });
     }
@@ -859,9 +986,9 @@
       DOM.tabFav.addEventListener('click', () => {
         state.activeTab = 'favorites';
         DOM.tabFav.classList.add('active');
-        DOM.tabFav.setAttribute('aria-selected', 'true');
+        DOM.tabFav.setAttribute('aria-pressed', 'true');
         DOM.tabAll.classList.remove('active');
-        DOM.tabAll.setAttribute('aria-selected', 'false');
+        DOM.tabAll.setAttribute('aria-pressed', 'false');
         renderProductsGrid();
       });
     }
@@ -895,7 +1022,7 @@
     // Tombol Hapus Semua Favorit
     if (DOM.btnClearFavorites) {
       DOM.btnClearFavorites.addEventListener('click', () => {
-        const currentFavs = window.RotiKuStorage.getFavorites();
+        const currentFavs = window.VeloraStorage.getFavorites();
         if (currentFavs.length === 0) {
           showToast('Daftar favorit sudah dalam keadaan kosong.', 'info');
           return;
@@ -903,7 +1030,7 @@
 
         const confirmClear = window.confirm('Apakah Anda yakin ingin menghapus semua produk dari daftar favorit?');
         if (confirmClear) {
-          window.RotiKuStorage.clearAllFavorites();
+          window.VeloraStorage.clearAllFavorites();
           updateCountBadges();
           renderFavoritesSection();
           renderProductsGrid();
@@ -935,7 +1062,7 @@
         if (delBtn) {
           const noteId = delBtn.getAttribute('data-note-id');
           if (noteId && window.confirm('Apakah Anda yakin ingin menghapus catatan produk ini?')) {
-            window.RotiKuStorage.deleteNote(noteId);
+            window.VeloraStorage.deleteNote(noteId);
             renderSavedNotes();
             showToast('Catatan produk berhasil dihapus.', 'info');
           }
@@ -953,10 +1080,14 @@
   });
 
   // Ekspor internal state untuk keperluan pengujian
-  window.__RotiKuApp = {
+  const VeloraApp = {
     state,
     DOM,
     loadProducts,
     applyFiltersAndSort,
   };
+
+  window.__VeloraApp = VeloraApp;
+  // Alias backward-compatibility
+  window.__RotiKuApp = VeloraApp;
 })(window, document);

@@ -1,4 +1,4 @@
-# Folder Aset & Screenshot RotiKu
+# Folder Aset & Screenshot Velora
 
 Tempatkan file tangkapan layar pengujian Anda di folder ini:
 1. `screenshot-desktop.png` (Tampilan Desktop resolusi $\ge 1024\text{ px}$)

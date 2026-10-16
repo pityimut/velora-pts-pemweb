@@ -1,37 +1,45 @@
 /**
- * RotiKu — Storage Layer (localStorage Manager)
+ * Velora — Storage Layer (localStorage Manager)
  * Author: Fitri (NIM: 2440304027)
  * Tugas PTS Pemrograman Web — Variasi 027
- * Y = 2: Favorite/Bookmark menggunakan localStorage (Kunci: rotiku_favorites)
- * Fitur Tambahan: Penyimpanan catatan terkurasi (Kunci: rotiku_notes)
+ * Y = 2: Favorite/Bookmark menggunakan localStorage (Kunci: velora_favorites)
+ * Fitur Tambahan: Penyimpanan catatan terkurasi (Kunci: velora_notes)
  */
 
 (function (window) {
   'use strict';
 
   const STORAGE_KEYS = {
-    FAVORITES: 'rotiku_favorites',
-    NOTES: 'rotiku_notes',
+    FAVORITES: 'velora_favorites',
+    NOTES: 'velora_notes',
+    // Fallback lama untuk migrasi mulus data peramban
+    LEGACY_FAVORITES: 'rotiku_favorites',
+    LEGACY_NOTES: 'rotiku_notes',
   };
 
   /**
    * Helper internal untuk membaca dan mem-parse JSON dari localStorage secara aman.
    * Menangani kondisi penyimpanan kosong, kuota penuh, atau data JSON rusak/korup.
    *
-   * @param {string} key - Kunci localStorage
+   * @param {string} key - Kunci localStorage utama
    * @param {any} fallback - Nilai kembalian jika parsing gagal atau data null
+   * @param {string} [legacyKey] - Kunci alternatif lama untuk backward-compatibility
    * @returns {any}
    */
-  function safeGetItem(key, fallback = []) {
+  function safeGetItem(key, fallback = [], legacyKey = null) {
     try {
-      const serialized = localStorage.getItem(key);
+      let serialized = localStorage.getItem(key);
+      // Jika kunci utama belum ada, coba periksa kunci warisan jika disediakan
+      if (serialized === null && legacyKey) {
+        serialized = localStorage.getItem(legacyKey);
+      }
       if (serialized === null) {
         return fallback;
       }
       const parsed = JSON.parse(serialized);
       return parsed !== null && parsed !== undefined ? parsed : fallback;
     } catch (err) {
-      console.warn(`[RotiKu Storage] Gagal membaca kunci "${key}" dari localStorage. Menggunakan fallback.`, err);
+      console.warn(`[Velora Storage] Gagal membaca kunci "${key}" dari localStorage. Menggunakan fallback.`, err);
       return fallback;
     }
   }
@@ -48,7 +56,7 @@
       localStorage.setItem(key, JSON.stringify(value));
       return true;
     } catch (err) {
-      console.error(`[RotiKu Storage] Gagal menyimpan kunci "${key}" ke localStorage.`, err);
+      console.error(`[Velora Storage] Gagal menyimpan kunci "${key}" ke localStorage.`, err);
       return false;
     }
   }
@@ -64,7 +72,7 @@
    * @returns {Array<number|string>}
    */
   function getFavorites() {
-    const raw = safeGetItem(STORAGE_KEYS.FAVORITES, []);
+    const raw = safeGetItem(STORAGE_KEYS.FAVORITES, [], STORAGE_KEYS.LEGACY_FAVORITES);
     if (!Array.isArray(raw)) {
       return [];
     }
@@ -149,7 +157,7 @@
    * @returns {Array<Object>}
    */
   function getNotes() {
-    const notes = safeGetItem(STORAGE_KEYS.NOTES, []);
+    const notes = safeGetItem(STORAGE_KEYS.NOTES, [], STORAGE_KEYS.LEGACY_NOTES);
     return Array.isArray(notes) ? notes : [];
   }
 
@@ -187,7 +195,7 @@
   }
 
   // Publikasikan modul Storage ke global window
-  window.RotiKuStorage = {
+  const VeloraStorage = {
     KEYS: STORAGE_KEYS,
     getFavorites,
     isFavorite,
@@ -199,4 +207,8 @@
     saveNote,
     deleteNote,
   };
+
+  window.VeloraStorage = VeloraStorage;
+  // Alias backward-compatibility
+  window.RotiKuStorage = VeloraStorage;
 })(window);

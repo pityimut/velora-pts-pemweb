@@ -1,8 +1,8 @@
 /**
- * RotiKu — API Layer (REST API Client)
+ * Velora — API Layer (REST API Client)
  * Author: Fitri (NIM: 2440304027)
  * Tugas PTS Pemrograman Web — Variasi 027 (X = 0: Dataset Products)
- * Endpoint: https://dummyjson.com/products
+ * Endpoint: https://dummyjson.com/products?limit=0
  */
 
 (function (window) {
@@ -10,7 +10,7 @@
 
   // Endpoint API Wajib sesuai spesifikasi PTS Pemrograman Web
   const API_CONFIG = {
-    DEFAULT_ENDPOINT: 'https://dummyjson.com/products',
+    DEFAULT_ENDPOINT: 'https://dummyjson.com/products?limit=0',
     TIMEOUT_MS: 12000, // Timeout perlindungan 12 detik
   };
 
@@ -115,8 +115,12 @@
   }
 
   // Publikasikan API client ke window
-  window.RotiKuAPI = {
+  const VeloraAPI = {
     fetchProducts,
     DEFAULT_ENDPOINT: API_CONFIG.DEFAULT_ENDPOINT,
   };
+
+  window.VeloraAPI = VeloraAPI;
+  // Alias backward-compatibility
+  window.RotiKuAPI = VeloraAPI;
 })(window);

@@ -1,51 +1,52 @@
-# RotiKu — Interactive Product Dashboard
+# Velora — Interactive Product Dashboard
 
 > **Tugas Penilaian Tengah Semester (PTS) Pemrograman Web Individual**  
 > **Dosen Pengampu:** Tim Dosen Pemrograman Web  
 > **Nama Mahasiswa:** Fitri  
 > **NIM:** 2440304027  
 > **Tiga Digit Terakhir NIM:** 027  
-> **Program Studi / Kelas:** [TI-5A / Isi Kelas Anda, contoh: Pemrograman Web - Kelas B]  
+> **Program Studi / Kelas:** Belum dicantumkan
 > **Batas Pengumpulan:** Jumat, 16 Oktober 2026 pukul 23.59 WITA  
 
 ---
 
 ## 1. Identitas Project & Perhitungan Variasi
 
-Aplikasi **RotiKu** dibangun secara spesifik berdasarkan ketentuan variasi NIM **2440304027**:
+Aplikasi **Velora** dibangun secara spesifik berdasarkan ketentuan variasi NIM **2440304027**:
 
 $$\text{NIM: } 2440304027 \implies \text{Digit Terakhir: } X=0, \; Y=2, \; Z=7$$
 
 - **Digit $X = 0$ (Dataset REST API):**  
-  Dataset wajib: **Products** dari endpoint resmi [https://dummyjson.com/products](https://dummyjson.com/products).
+  Dataset wajib: **Products** dari endpoint [https://dummyjson.com/products?limit=0](https://dummyjson.com/products?limit=0), yang meminta seluruh item tersedia.
 - **Digit $Y = 2$ (Fitur Bookmark/Favorit):**  
-  Penyimpanan produk favorit secara persisten pada peramban menggunakan `localStorage` dengan kunci `rotiku_favorites`.
+  Penyimpanan produk favorit secara persisten pada peramban menggunakan `localStorage` dengan kunci `velora_favorites` (dengan fallback kompatibilitas membaca kunci lama).
 - **Digit $Z = 7$ (Fitur Validasi Formulir):**  
   Formulir catatan kurasi produk dengan validasi ketat teks wajib berisi **minimal 30 karakter bersih** (setelah spasi awal dan akhir dipotong dengan `.trim()`).
 - **Kalkulasi Nilai $S$ dan Challenge $C$:**  
   $$S = X + Y + Z = 0 + 2 + 7 = 9$$  
   $$C = S \pmod 4 = 9 \pmod 4 = 1$$  
   **Challenge $C = 1$:**  
-  1. Tombol **Retry** (Coba Lagi) yang muncul secara kontekstual ketika `fetch()` gagal atau koneksi terputus.  
-  2. Informasi **waktu terakhir data berhasil dimuat** (*timestamp*) yang dicatat hanya setelah data API berhasil diambil dan diproses secara nyata (tidak berubah bila fetch berikutnya gagal).
+  1. Tombol **Retry** (Coba Lagi) yang muncul secara kontekstual ketika `fetch()` gagal atau koneksi terputus, dan benar-benar melakukan re-fetch ke API.  
+  2. Informasi **waktu terakhir data berhasil dimuat** (*timestamp*) yang dicatat hanya setelah data API berhasil diterima dan diproses secara nyata (tidak terhapus bila fetch berikutnya gagal).
 
 ---
 
 ## 2. Konsep Aplikasi & Identitas Visual
 
-**RotiKu** adalah *Interactive Product Dashboard* yang menyajikan data eksplorasi produk global dari REST API DummyJSON Products dengan balutan identitas visual toko roti (*bakery*) yang hangat, minimalis, bersih, profesional, dan responsif.
+**Velora** adalah katalog produk editorial dengan tata letak ringan, tipografi kontras, dan palet lavender lembut.
 
-> **Penting Mengenai Integritas Data:**  
-> RotiKu **bukan** sistem kasir atau e-commerce transaksi fiktif. Seluruh data produk (nama, harga, kategori, rating, deskripsi, thumbnail) bersumber langsung dari payload asli REST API DummyJSON Products tanpa manipulasi data palsu. Tema toko roti diterapkan secara konsisten pada:
-> - Palet warna: *cream* (`#FAF6F0`), *soft beige* (`#F5EFEB`), *warm coffee brown* (`#2C1A11`, `#42291B`), dan *crust accent* (`#C86927`, `#DF8A28`).
-> - Tipografi: *Outfit* (display) dan *Plus Jakarta Sans* (body).
-> - Estetika visual: kartu dengan sudut membulat (*radius* halus), bayangan lembut (*soft elevation*), ikon ramah, serta tata letak adaptif.
+- **Palet Warna:**
+  - Background: `#FAF9FC`; permukaan kartu: `#FFFFFF`.
+  - Lavender: `#E8E0F5`; aksen: `#8B78AC`; teks utama: `#30283D`.
+  - Teks sekunder: `#777181`; border: `#ECE7F2`.
+- **Tipografi:** *DM Serif Display* untuk judul dan *DM Sans* untuk antarmuka.
+- **Integritas Data:** Data produk bersumber dari `https://dummyjson.com/products?limit=0`. Harga API dikonversi ke Rupiah dengan kurs acuan tetap Rp 16.000 per USD, bukan kurs langsung.
 
 ---
 
 ## 3. Teknologi yang Digunakan
 
-Proyek ini dibangun secara murni tanpa *framework* atau *library* pihak ketiga yang menggantikan kompetensi inti web development:
+Proyek ini dibangun secara murni tanpa *framework* atau *library* pihak ketiga:
 
 1. **HTML5 Semantik:** Penggunaan tag `<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, `<form>`, `<label>`, dan `<footer>` secara hierarkis. Aksesibilitas dilengkapi atribut ARIA (`aria-label`, `aria-live`, `aria-required`, `role="status"`, `role="alert"`).
 2. **Vanilla CSS3:** Arsitektur modular menggunakan *CSS Custom Properties (Variables)*, *CSS Grid*, dan *Flexbox*. Desain responsif diuji pada 3 *viewport*: Desktop ($\ge 1024\text{ px}$), Tablet ($\approx 768\text{ px}$), dan Mobile ($\le 480\text{ px}$) tanpa *horizontal scrolling*.
@@ -61,48 +62,65 @@ Proyek ini dibangun secara murni tanpa *framework* atau *library* pihak ketiga y
 ## 4. Struktur Direktori Proyek
 
 ```text
-Web_ROTIKU/
-├── index.html              # Struktur utama dashboard semantik
+velora/
+├── index.html              # Struktur utama dashboard semantik Velora
 ├── css/
-│   └── style.css           # Design system, styling bakery hangat & media queries
+│   └── style.css           # Design system minimalis putih & lavender, grid, card, & media queries
 ├── js/
-│   ├── api.js              # Modul Fetch API, response.ok, timeout, & error handling
-│   ├── storage.js          # Modul localStorage untuk favorit & catatan (safe parsing)
-│   └── app.js              # Controller utama: DOM, kalkulasi statistik, form, & retry
-├── assets/                 # Direktori opsional untuk aset visual & screenshot
-│   ├── screenshot-desktop.png (Placeholder: diambil setelah aplikasi dijalankan)
-│   └── screenshot-mobile.png  (Placeholder: diambil setelah aplikasi dijalankan)
+│   ├── api.js              # Modul VeloraAPI: Fetch API, response.ok, timeout, & error handling
+│   ├── storage.js          # Modul VeloraStorage: localStorage untuk favorit & catatan (safe parsing)
+│   └── app.js              # Controller utama: DOM, kalkulasi statistik, format Rupiah, form, & retry
+├── assets/                 # Direktori untuk aset visual & tangkapan layar
+│   ├── README.md           # Panduan penempatan screenshot
 ├── README.md               # Dokumentasi lengkap & jawaban 10 pertanyaan PTS
 ├── AI_USAGE_LOG.md         # Catatan transparan penggunaan alat bantu AI
+├── TEST_REPORT.md          # Laporan verifikasi pengujian mandiri
 └── VIDEO_DEMO_GUIDE.md     # Panduan dan naskah video demo 8 menit
 ```
 
 ---
 
-## 5. Cara Menjalankan Aplikasi
+## 5. Cara Menjalankan Aplikasi & Solusi Error Laragon 404
 
-Aplikasi RotiKu merupakan *pure front-end project* yang dapat dijalankan melalui beberapa alternatif server lokal:
+Aplikasi Velora merupakan *front-end website* statis (HTML, CSS, JS murni).
 
-### Alternatif A: Menggunakan VS Code Live Server (Direkomendasikan)
-1. Buka folder `Web_ROTIKU` di VS Code.
-2. Pastikan ekstensi **Live Server** (oleh Ritwick Dey) sudah terpasang.
-3. Klik kanan file `index.html`, lalu pilih **"Open with Live Server"**.
+### Mengapa Laragon Sebelumnya Menghasilkan Error 404?
+
+Jika Anda sebelumnya mencoba membuka project melalui Laragon dan mendapatkan halaman **404 Not Found**, berikut dua penyebab teknis utamanya:
+
+1. **Nama Folder yang Diakses Tidak Cocok:**  
+   Nama folder fisik di dalam direktori `www` adalah `velora`. Jika Anda mengakses `http://localhost/Web_ROTIKU/`, Apache tidak menemukan folder tersebut sehingga memunculkan error 404. URL yang benar adalah `http://localhost/velora/` atau `http://velora.test`.
+2. **Perbedaan Partisi Drive / Lokasi DocumentRoot Apache:**  
+   Secara default, Laragon terinstal di drive `C:` dengan `DocumentRoot` pada `C:\laragon\www`. Namun workspace project ini berada di drive `D:` (`D:\SEMESTER 5\Pemrograman Web\Web\laragon\www\velora`). Jika Apache Laragon membaca `C:\laragon\www`, Apache tidak otomatis melihat folder yang berada di drive `D:`.
+
+### Panduan Solusi & Cara Menjalankan yang Benar:
+
+#### Opsi 1: Menggunakan VS Code Live Server (Paling Cepat & Direkomendasikan)
+Cara ini tidak tergantung pada konfigurasi web server pihak ketiga dan dijamin langsung berjalan:
+1. Buka workspace folder `velora` di VS Code.
+2. Pastikan ekstensi **Live Server** (oleh Ritwick Dey) terpasang.
+3. Klik kanan pada file `index.html`, lalu pilih **"Open with Live Server"** (atau klik tombol *Go Live* di status bar kanan bawah).
 4. Browser akan otomatis terbuka pada alamat: `http://127.0.0.1:5500/index.html`.
 
-### Alternatif B: Menggunakan Laragon / XAMPP
-1. Salin atau letakkan folder `Web_ROTIKU` ke dalam direktori web root:
-   - Laragon: `C:\laragon\www\Web_ROTIKU`
-   - XAMPP: `C:\xampp\htdocs\Web_ROTIKU`
-2. Jalankan Apache service pada panel Laragon/XAMPP.
-3. Buka browser dan arahkan ke: `http://localhost/Web_ROTIKU/`.
+#### Opsi 2: Menjalankan via Laragon (Jika Menggunakan Apache Laragon)
+1. Periksa lokasi DocumentRoot Laragon Anda:
+   - Jika Laragon Anda terinstal di `D:\SEMESTER 5\Pemrograman Web\Web\laragon`, klik tombol **Start All** pada panel Laragon.
+   - Buka browser dan ketik alamat: `http://localhost/velora/` atau `http://velora.test`.
+2. Jika Laragon Anda terinstal di `C:\laragon` sedangkan project berada di `D:`, Anda memiliki 2 pilihan mudah:
+   - **Pilihan A (Symlink / Directory Junction):** Buka Command Prompt sebagai Administrator, lalu jalankan:
+     ```cmd
+     mklink /J "C:\laragon\www\velora" "D:\SEMESTER 5\Pemrograman Web\Web\laragon\www\velora"
+     ```
+     Setelah itu, buka `http://localhost/velora/` di browser.
+   - **Pilihan B (Ganti Root Laragon):** Klik kanan panel Laragon $\to$ **Laragon** $\to$ **Root** $\to$ arahkan ke direktori `D:\SEMESTER 5\Pemrograman Web\Web\laragon\www`. Reload Apache dan buka `http://localhost/velora/`.
 
-### Alternatif C: Menggunakan Python Built-in Server
-1. Buka terminal (PowerShell / Command Prompt) di folder `Web_ROTIKU`.
+#### Opsi 3: Menggunakan Python Built-in Server
+1. Buka terminal (PowerShell / Command Prompt) di dalam folder project `velora`.
 2. Jalankan perintah:
    ```bash
    python -m http.server 8080
    ```
-3. Buka browser pada alamat: `http://localhost:8080`.
+3. Buka peramban pada alamat: `http://localhost:8080`.
 
 ---
 
@@ -111,29 +129,21 @@ Aplikasi RotiKu merupakan *pure front-end project* yang dapat dijalankan melalui
 | No | Fitur yang Diuji | Langkah Pengujian | Hasil yang Diharapkan |
 |:---|:---|:---|:---|
 | 1 | **Koneksi API & Loading** | Buka halaman web pertama kali. | Spinner *loading* muncul sementara, indikator status API berubah hijau "Berhasil", dan data katalog tampil. |
-| 2 | **Waktu Terakhir Dimuat (C=1)** | Amati kotak "Waktu Terakhir Data Berhasil Dimuat" di *status bar*. | Menampilkan tanggal dan jam riil saat fetch berhasil (contoh: *16 Oktober 2026, 07:45 WIB*). Nilai ini tidak hardcoded. |
-| 3 | **Kalkulasi Statistik Otomatis** | Periksa 4 kartu statistik di bagian atas. | Total produk (30), rata-rata harga dihitung via `reduce()`, produk termahal dicari via `reduce()`, dan jumlah kategori unik dihitung via `Set()`. |
+| 2 | **Waktu Terakhir Dimuat (C=1)** | Amati kotak "Waktu Terakhir Data Berhasil Dimuat" di *status bar*. | Menampilkan tanggal dan jam riil saat fetch berhasil (contoh: *16 Oktober 2026, 15:30 WIB*). Nilai ini tidak hardcoded. |
+| 3 | **Kalkulasi Statistik Otomatis** | Periksa 4 ringkasan statistik setelah API berhasil. | Total, rata-rata harga, produk termahal, dan kategori unik dihitung dari seluruh item yang diterima, bukan dari angka tetap. |
 | 4 | **Pencarian & Filter Kategori** | Ketik kata kunci pada kotak pencarian atau pilih kategori pada dropdown. | Grid katalog memfilter produk secara real-time. Jika tidak ada yang cocok, *empty state* muncul beserta tombol reset. |
-| 5 | **Simulasi Error & Retry (C=1)** | Matikan koneksi internet (atau ubah URL di `api.js` menjadi URL salah) lalu klik tombol "Coba Lagi (Retry)". | Muncul banner error deskriptif, indikator merah "Koneksi API Gagal", tombol Retry aktif, dan waktu keberhasilan sebelumnya **tidak terhapus**. Nyalakan kembali internet dan klik Retry; data termuat normal kembali. |
-| 6 | **Fitur Favorit / Bookmark (Y=2)** | Klik tombol ikon hati pada salah satu kartu produk. | Tombol berubah merah aktif (`is-favorite`), counter badge navigasi & tab bertambah (+1), produk muncul di bagian `#favorites`, dan data tersimpan di `localStorage` (kunci `rotiku_favorites`). |
+| 5 | **Simulasi Error & Retry (C=1)** | Matikan koneksi internet (atau matikan Wi-Fi) lalu klik tombol "Coba Lagi (Retry)". | Muncul banner error deskriptif, indikator merah "Koneksi API Gagal", tombol Retry aktif, dan waktu keberhasilan sebelumnya **tidak terhapus**. Nyalakan kembali internet dan klik Retry; data termuat normal kembali. |
+| 6 | **Fitur Favorit / Bookmark (Y=2)** | Klik tombol Tambah Favorit pada salah satu kartu produk. | Tombol berubah menjadi Hapus Favorit, counter bertambah, produk muncul pada tampilan favorit, dan ID tersimpan di `localStorage` (`velora_favorites`). |
 | 7 | **Persistensi Favorit** | Muat ulang (*refresh*) browser (F5). | Status favorit pada produk yang telah ditandai tetap aktif dan produk tetap ada di daftar favorit. |
 | 8 | **Validasi Catatan $<30$ Karakter (Z=7)** | Pilih produk pada formulir catatan, ketik teks pendek (misal: "Bagus sekali"), lalu klik "Simpan Catatan Produk". | Formulir **menolak** penyimpanan, *counter* karakter menunjukkan warna merah (invalid), dan kotak umpan balik (`aria-live`) menampilkan pesan kesalahan: *"Catatan harus berisi minimal 30 karakter setelah spasi di awal/akhir dibersihkan"*. |
 | 9 | **Validasi Catatan Valid $\ge 30$ Karakter (Z=7)** | Ketik catatan evaluasi lebih dari 30 karakter bersih, lalu klik "Simpan Catatan Produk". | Formulir **menerima** input, pesan sukses hijau muncul, form di-reset, dan catatan baru muncul pada riwayat catatan tersimpan. |
-| 10 | **Responsivitas Layar** | Buka DevTools (F12) lalu ubah resolusi ke Mobile (375px atau 480px). | Layout beralih ke 1 kolom, navigasi dan tombol tetap proporsional, serta **tidak ada horizontal scrollbar**. |
+| 10 | **Responsivitas Layar** | Buka DevTools (F12) lalu ubah resolusi desktop, tablet, dan mobile. | Kartu tersusun responsif, kontrol tetap mudah digunakan, serta **tidak ada horizontal scrollbar**. |
 
 ---
 
 ## 7. Screenshot Aplikasi
 
-> *Catatan Pengujian Nyata:* Tangkapan layar di bawah ini dapat Anda perbarui dengan menempatkan file tangkapan layar browser Anda ke dalam folder `assets/`.
-
-- **Tampilan Desktop ($\ge 1024\text{ px}$):**  
-  `assets/screenshot-desktop.png`  
-  *(Menampilkan header, identitas Fitri NIM 2440304027, 4 kartu ringkasan statistik, toolbar pencarian/kategori, dan grid katalog responsif)*
-
-- **Tampilan Mobile ($\le 480\text{ px}$):**  
-  `assets/screenshot-mobile.png`  
-  *(Menampilkan adaptasi kolom tunggal yang ramah sentuhan, tata letak formulir catatan proporsional, dan tanpa overflow horizontal)*
+Belum ada berkas screenshot yang disimpan di project. Jika screenshot diminta untuk pengumpulan, ambil langsung dari browser setelah menjalankan aplikasi.
 
 ---
 
@@ -150,19 +160,19 @@ Berikut adalah jawaban lengkap, terperinci, dan teknis atas 10 pertanyaan evalua
    - `handleNoteTextareaInput()`: Menginisialisasi counter karakter catatan.
    - `renderSavedNotes()`: Membaca dan menampilkan catatan yang tersimpan dari `localStorage`.
    - `loadProducts()`: Memulai alur pemuatan data REST API.
-4. Di dalam `loadProducts()`, status UI diubah menjadi *loading* (menampilkan elemen `#catalog-loading` dan animasi spinner).
-5. Fungsi `loadProducts()` memanggil `window.RotiKuAPI.fetchProducts()` yang berada di `js/api.js`.
-6. Fungsi `fetchProducts()` memanggil `fetch('https://dummyjson.com/products')`.
+4. Di dalam `loadProducts()`, status UI diubah menjadi *loading* (menampilkan elemen `#catalog-loading` dan animasi spinner lavender).
+5. Fungsi `loadProducts()` memanggil `window.VeloraAPI.fetchProducts()` yang berada di `js/api.js`.
+6. Fungsi `fetchProducts()` memanggil `fetch('https://dummyjson.com/products?limit=0')`.
 7. Setelah respons server diterima, program memeriksa properti `response.ok`. Jika bernilai `true`, payload JSON dibaca melalui `await response.json()`.
 8. Data JSON dikembalikan ke `loadProducts()`:
    - Properti `data.products` disimpan ke variabel `state.products`.
    - Waktu berhasil dimuat dicatat ke `state.lastSuccessfulLoad` dan dirender ke `#last-updated-time`.
-   - Fungsi `calculateAndRenderStatistics(state.products)` dipanggil untuk menghitung 4 metrik statistik.
+   - Fungsi `calculateAndRenderStatistics(state.products)` dipanggil untuk menghitung 4 metrik statistik dalam format Rupiah.
    - Fungsi `populateCategoryOptions()` dipanggil untuk mengisi pilihan kategori unik.
    - Fungsi `populateNoteProductDropdown()` dipanggil untuk mengisi pilihan produk pada form catatan.
    - Fungsi `applyFiltersAndSort()` dipanggil, yang kemudian memicu `renderProductsGrid()` untuk membuat elemen kartu produk DOM dan menyematkannya ke `#products-grid`.
    - Fungsi `renderFavoritesSection()` dipanggil untuk merender produk yang tersimpan di bookmark.
-9. Indikator *loading* disembunyikan, dan katalog produk berhasil tampil di hadapan pengguna.
+9. Indikator *loading* disembunyikan, dan katalog produk Velora berhasil tampil di hadapan pengguna.
 
 ---
 
@@ -172,7 +182,7 @@ Fungsi bawaan `fetch()` pada JavaScript memiliki karakteristik unik: **Promise y
 
 Oleh karena itu, pengembang **wajib** memeriksa properti boolean `response.ok` (yang bernilai `true` hanya jika status kode HTTP berada pada rentang 200–299).
 
-**Contoh Kasus Nyata pada Aplikasi RotiKu:**  
+**Contoh Kasus Nyata pada Aplikasi Velora:**  
 Jika endpoint diubah menjadi `https://dummyjson.com/productssss` (typo URL yang menghasilkan HTTP 404), server DummyJSON tetap mengirimkan paket respons HTTP yang valid secara transmisi TCP/IP. Jika kita tidak memeriksa `response.ok`:
 ```javascript
 // CONTOH KELIRU:
@@ -182,7 +192,7 @@ renderProducts(data.products);       // CRASH! data.products bernilai undefined 
 ```
 Dengan memeriksa `response.ok`:
 ```javascript
-// IMPLEMENTASI BENAR PADA RotiKu (js/api.js):
+// IMPLEMENTASI BENAR PADA Velora (js/api.js):
 if (!response.ok) {
   throw new Error(`Gagal mengambil data dari server (HTTP ${response.status}: ${response.statusText})`);
 }
@@ -210,28 +220,20 @@ Misalkan respons API mengembalikan satu objek produk berikut:
 Transformasi menjadi elemen DOM dilakukan di fungsi `createProductCard(product, isFav)` pada `js/app.js`:
 1. **Pembuatan Elemen Pembungkus:**  
    `const card = document.createElement('article');` dibuat dan diberikan class `product-card` serta atribut data `card.setAttribute('data-id', product.id)`.
-2. **Pembersihan Data (Sanitasi XSS):**  
-   Setiap properti string diproses melalui fungsi pembantu `escapeHTML()` agar karakter berbahaya seperti `<`, `>`, atau `"` diubah menjadi entitas HTML aman (`&lt;`, `&gt;`).
-3. **Penyusunan Konten HTML:**  
-   Properti diinjeksikan secara terstruktur:
-   - `product.category` disisipkan ke dalam badge `<span class="product-category-tag">beauty</span>`.
-   - `product.thumbnail` disematkan ke atribut `src` pada tag `<img>`. Dilengkapi atribut `alt="Foto produk Essence Mascara Lash Princess"`, `loading="lazy"`, serta penangan event `onerror` untuk menampilkan fallback visual bila gambar gagal dimuat.
-   - Status favorit (`isFav`) menentukan apakah kelas `is-favorite` ditambahkan pada tombol `<button class="btn-fav-toggle">`.
-   - `product.title` dimasukkan ke dalam elemen `<h3>`.
-   - `product.rating` (2.56) dikonversi menjadi representasi bintang visual via `renderRatingStars()` dan teks nilai numerik rating.
-   - `product.price` (9.99) diformat menjadi `$9.99` menggunakan objek `Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })`.
+2. **Penyusunan Elemen DOM:** Kategori dan nama produk diisikan melalui `textContent`. Thumbnail ditetapkan pada elemen `<img>` dengan `alt` dan `loading="lazy"`; jika gambar gagal, hanya elemen gambar yang diganti placeholder.
+3. **Harga dan Favorit:** Harga API dikonversi ke IDR memakai kurs acuan Rp 16.000 per USD. Tombol berlabel **Tambah Favorit** atau **Hapus Favorit** ditentukan dari status `isFav` dan diperbarui tanpa membuat ulang permintaan API.
 4. Elemen `<article>` yang telah utuh ini kemudian disisipkan ke dalam `DocumentFragment` sebelum digabungkan ke kontainer DOM `#products-grid`.
 
 ---
 
 ### 4. Jelaskan penanganan internet terputus, endpoint salah, dan HTTP 404/500!
 **Jawaban:**
-Pada arsitektur RotiKu, penanganan skenario kegagalan dibagi secara sistematis di dalam `js/api.js` dan direfleksikan ke UI melalui `js/app.js`:
+Pada arsitektur Velora, penanganan skenario kegagalan dibagi secara sistematis di dalam `js/api.js` dan direfleksikan ke UI melalui `js/app.js`:
 
 1. **Internet Terputus (Offline / Network Disconnection):**
    - Sebelum melakukan request, `js/api.js` memeriksa status `navigator.onLine`. Jika bernilai `false`, sistem langsung melempar `OfflineError`.
    - Jika koneksi terputus saat request sedang berjalan, `fetch()` akan melempar `TypeError: Failed to fetch`. Blok `catch` menangkap error ini dan membungkusnya menjadi `NetworkError` dengan pesan informatif: *"Terjadi kegagalan jaringan saat menghubungi API. Periksa URL atau koneksi internet."*
-   - UI menampilkan banner peringatan `#connection-alert` dan mengaktifkan tombol *Retry*.
+  - Saat pemuatan awal gagal, UI menampilkan `#catalog-error` dan tombol Retry. Jika pembaruan gagal setelah data pernah berhasil dimuat, data lama tetap tampil bersama `#connection-alert` dan tombol Retry.
 2. **Endpoint Salah / Typo URL:**
    - Jika domain endpoint tidak valid (misalnya `https://dummyjson-salah.com`), `fetch()` mengalami kegagalan resolusi DNS dan memicu blok `catch` `NetworkError`.
    - Jika path salah pada domain yang benar (misalnya `https://dummyjson.com/endpoint_salah`), server DummyJSON mengembalikan HTTP 404.
@@ -248,10 +250,10 @@ Pada arsitektur RotiKu, penanganan skenario kegagalan dibagi secara sistematis d
 **Jawaban:**
 Variasi mahasiswa **Y = 2** mewajibkan implementasi fitur Favorite/Bookmark menggunakan `localStorage`.
 
-- **Penyimpanan:** Kunci `rotiku_favorites` menyimpan array ID produk bertipe numerik dalam format string JSON (contoh: `[1, 5, 12]`).
+- **Penyimpanan:** Kunci `velora_favorites` menyimpan array ID produk bertipe numerik dalam format string JSON (contoh: `[1, 5, 12]`), dengan fallback membaca data lama jika ada.
 - **Alur Kerja & Fungsi yang Digunakan:**
-  1. `RotiKuStorage.getFavorites()`: Membaca `localStorage.getItem('rotiku_favorites')`. Menggunakan `try...catch` untuk mengantisipasi data JSON korup dan membungkus hasil dalam `new Set()` untuk menjamin ketiadaan ID duplikat.
-  2. `RotiKuStorage.toggleFavorite(productId)`: Memeriksa apakah ID sudah ada melalui `isFavorite(productId)`. Jika sudah ada, dihapus via `removeFavorite()`; jika belum ada, ditambahkan via `addFavorite()`.
+  1. `VeloraStorage.getFavorites()`: Membaca `localStorage.getItem('velora_favorites')`. Menggunakan `try...catch` untuk mengantisipasi data JSON korup dan membungkus hasil dalam `new Set()` untuk menjamin ketiadaan ID duplikat.
+  2. `VeloraStorage.toggleFavorite(productId)`: Memeriksa apakah ID sudah ada melalui `isFavorite(productId)`. Jika sudah ada, dihapus via `removeFavorite()`; jika belum ada, ditambahkan via `addFavorite()`.
   3. **Event Listener:** Menggunakan teknik **Event Delegation** pada kontainer `#products-grid` dan `#favorites-grid` untuk menangkap event `click`:
      ```javascript
      DOM.productsGrid.addEventListener('click', (e) => {
@@ -280,7 +282,7 @@ Variasi mahasiswa **Z = 7** mewajibkan validasi catatan minimal 30 karakter bers
    - Apakah produk telah dipilih (`!productId`).
    - Apakah panjang teks bersih kurang dari 30 karakter (`cleanText.length < 30`).
 4. Jika salah satu kondisi gagal, eksekusi **dihentikan seketika (`return`)**. Kotak umpan balik `#note-feedback` menampilkan pesan kesalahan eksplisit (didukung `aria-live="polite"`), kursor difokuskan kembali ke input yang keliru, dan **tidak ada data yang disimpan**.
-5. Jika valid, barulah data disimpan ke `localStorage` melalui `RotiKuStorage.saveNote()`.
+5. Jika valid, barulah data disimpan ke `localStorage` melalui `VeloraStorage.saveNote()`.
 
 **Mengapa Input Tidak Valid Tidak Boleh Diproses?**
 1. **Integritas Data:** Mencegah tersimpannya catatan sampah, karakter kosong hasil manipulasi spasi (*whitespace abuse*), atau catatan tanpa relasi ID produk yang jelas.
@@ -292,8 +294,8 @@ Variasi mahasiswa **Z = 7** mewajibkan validasi catatan minimal 30 karakter bers
 ### 7. Jelaskan data `localStorage`, kapan dibaca/diubah, dan alasan penggunaannya!
 **Jawaban:**
 - **Data yang Disimpan:**
-  1. `rotiku_favorites`: Berisi array ID produk favorit (contoh: `[1, 3, 7]`).
-  2. `rotiku_notes`: Berisi array objek catatan evaluasi produk, dengan struktur:
+  1. `velora_favorites`: Berisi array ID produk favorit (contoh: `[1, 3, 7]`).
+  2. `velora_notes`: Berisi array objek catatan evaluasi produk, dengan struktur:
      `{ id: "note_...", productId: 1, productTitle: "...", text: "...", charCount: 42, createdAt: "2026-10-16T..." }`.
 - **Kapan Dibaca (`Read`):**
   - Saat aplikasi pertama kali dimuat (`DOMContentLoaded`).
@@ -315,7 +317,7 @@ Variasi mahasiswa **Z = 7** mewajibkan validasi catatan minimal 30 karakter bers
 ### 8. Pilih satu fungsi JavaScript penting, lampirkan maksimal 15 baris kode, lalu jelaskan input, proses, dan output!
 **Jawaban:**
 
-**Potongan Kode Pilihan (Fungsi Kalkulasi Statistik):**
+**Potongan Kode Pilihan (Fungsi Kalkulasi Statistik dalam Rupiah):**
 ```javascript
 function calculateAndRenderStatistics(productsList = []) {
   const list = Array.isArray(productsList) ? productsList : [];
@@ -327,8 +329,8 @@ function calculateAndRenderStatistics(productsList = []) {
   const uniqueCategoryCount = new Set(list.map((p) => p.category).filter(Boolean)).size;
 
   if (DOM.statTotalProducts) DOM.statTotalProducts.textContent = count.toLocaleString('id-ID');
-  if (DOM.statAvgPrice) DOM.statAvgPrice.textContent = currencyFormatter.format(avgPrice);
-  if (DOM.statMaxPrice) DOM.statMaxPrice.textContent = maxProduct ? currencyFormatter.format(maxProduct.price) : '$0.00';
+  if (DOM.statAvgPrice) DOM.statAvgPrice.textContent = rupiahFormatter.format(avgPrice * USD_TO_IDR_RATE);
+  if (DOM.statMaxPrice) DOM.statMaxPrice.textContent = maxProduct ? rupiahFormatter.format(maxProduct.price * USD_TO_IDR_RATE) : 'Rp 0';
   if (DOM.statUniqueCategories) DOM.statUniqueCategories.textContent = uniqueCategoryCount.toLocaleString('id-ID');
 }
 ```
@@ -340,43 +342,42 @@ function calculateAndRenderStatistics(productsList = []) {
   3. Menghitung rata-rata harga dengan perlindungan percabangan `count > 0` (mencegah pembagian dengan nol atau tampilan `NaN`).
   4. Menemukan objek produk termahal menggunakan `reduce()` dengan membandingkan nilai numerik `price`.
   5. Menghitung kategori unik menggunakan transformasi `map()`, pembersihan nilai kosong `filter()`, dan struktur data `Set`.
-- **Output:** Memperbarui teks pada elemen DOM kartu statistik (`#stat-total-products`, `#stat-avg-price`, `#stat-max-price`, dan `#stat-unique-categories`) secara reaktif dalam format lokal yang rapi.
+  6. Mengonversi nilai mata uang ke format Rupiah (IDR) menggunakan `rupiahFormatter`.
+- **Output:** Memperbarui teks pada elemen DOM kartu statistik (`#stat-total-products`, `#stat-avg-price`, `#stat-max-price`, dan `#stat-unique-categories`) secara reaktif dalam format Rupiah dan lokal yang rapi.
 
 ---
 
 ### 9. Sebutkan bug/error tersulit yang benar-benar ditemukan selama pengerjaan, penyebab, cara menemukan, dan cara memperbaikinya!
 **Jawaban (Pengalaman Teknis Nyata Selama Pengerjaan):**
 - **Bug/Error yang Ditemukan:**  
-  Terjadi potensi pembagian dengan nol (*Division by Zero*) dan hasil tampilan teks `NaN` pada kartu rata-rata harga saat terjadi kegagalan fetch API atau dataset kosong, serta string quotes PowerShell yang sempat mengalami `SyntaxError: unterminated string literal` saat skrip pengujian dijalankan melalui CLI Windows.
+  1. Halaman web menghasilkan error **404 Not Found** saat dicoba dibuka melalui web server Laragon.
+  2. Tampilan harga rata-rata sempat berisiko menghasilkan `NaN` jika dataset kosong, serta inkonsistensi branding lama pada antarmuka.
 - **Penyebab:**  
-  1. Jika permintaan API gagal atau array produk bernilai kosong (`products = []`), rumus `totalPrice / products.length` mengevaluasi ekspresi `0 / 0` yang menghasilkan nilai numerik khusus `NaN`. Ketika dimasukkan ke `Intl.NumberFormat`, hal tersebut menampilkan `$NaN` yang merusak antarmuka pengguna.
-  2. Pada peramban otomatis (*browser subagent*), infrastruktur lingkungan otomasi mengalami kegagalan unduhan driver Playwright (`404 Not Found` dari server unduhan Microsoft Azureedge), sehingga pengujian otomatis peramban terhalang dan dialihkan ke pengujian unit skrip Python lokal.
+  1. Folder project dinamai `velora` dan berada pada drive `D:` (`D:\SEMESTER 5\Pemrograman Web\Web\laragon\www\velora`). Jika diakses menggunakan URL lama yang keliru (`/Web_ROTIKU/`) atau server Apache Laragon membaca DocumentRoot default di `C:\laragon\www`, Apache tidak dapat menemukan folder project tersebut dan menghasilkan HTTP 404.
+  2. Kurangnya validasi panjang array sebelum pembagian rata-rata berpotensi memicu ekspresi `0 / 0` (`NaN`), dan penggunaan hardcoded styling warna cokelat lama yang belum tersinkronisasi ke desain modern putih-lavender.
 - **Cara Menemukan:**  
-  Melalui pengujian kasus batas (*edge case testing*) dengan melewatkan array kosong ke fungsi pengolahan data serta pengujian skrip verifikasi otomatis di terminal lokal.
+  Menguji alur pembukaan URL di web server lokal Laragon, memeriksa riwayat log browser, serta menjalankan pemeriksaan silang teks branding di seluruh file project.
 - **Cara Memperbaiki:**  
-  1. Menambahkan pengkondisian ketat `const count = list.length;` dan `const avgPrice = count > 0 ? totalPrice / count : 0;` sehingga jika array kosong, nilai rata-rata dikembalikan secara aman menjadi `0.00`.
-  2. Memisahkan skrip verifikasi ke dalam file mandiri ber-ekstensi `.py` (`test_verify.py`) dengan encoding `utf-8` sehingga tidak lagi terpengaruh oleh escaping kutip pada shell PowerShell Windows.
-  3. Menyediakan dokumentasi status pengujian yang jujur dan transparan (`PASS`, `FAIL`, `NOT TESTED`) sesuai ketentuan soal PTS.
-
-> *(Catatan untuk Mahasiswa: Anda dapat menambahkan pengalaman pribadi tambahan saat menguji langsung di laptop Anda pada bagian ini jika menemukan hal menarik lainnya).*
+  1. Mengoreksi dokumentasi URL server ke `http://localhost/velora/` atau `http://velora.test`, memberikan panduan pembuatan Directory Junction (`mklink /J`) atau pemindahan DocumentRoot jika instalasi Laragon berada di partisi `C:`, serta merekomendasikan VS Code Live Server sebagai alternatif tanpa risiko konfigurasi server.
+  2. Menambahkan guard clause `count > 0 ? totalPrice / count : 0` untuk kalkulasi rata-rata, konversi Rupiah, dan palet Soft Editorial (`#FAF9FC`, `#E8E0F5`, `#8B78AC`, `#30283D`).
 
 ---
 
 ### 10. Sebutkan dua perbaikan teknis yang akan dilakukan jika diberi waktu satu minggu lagi!
 **Jawaban:**
 1. **Implementasi Pagination / Infinite Scroll & Client-Side Caching dengan IndexedDB:**  
-   Saat ini aplikasi memuat batch default 30 produk dari DummyJSON. Jika dikembangkan lebih lanjut, kita dapat mengimplementasikan *infinite scrolling* atau paginasi berbasis parameter `limit` dan `skip`. Selain itu, untuk data dalam jumlah ratusan hingga ribuan, penyimpanan offline dapat ditingkatkan dari `localStorage` (yang terbatas $\approx 5\text{ MB}$ dan sinkron) menjadi **IndexedDB** yang berbasis asinkron dan mampu menampung objek biner/gambar offline.
+  Aplikasi saat ini meminta seluruh produk yang tersedia melalui `limit=0` dan merender hasil respons. Jika dataset kelak jauh lebih besar, virtualisasi tampilan dapat mengurangi beban DOM tanpa membatasi data yang dipakai untuk statistik. Penyimpanan offline juga dapat ditingkatkan menjadi **IndexedDB**.
 2. **Arsitektur Offline-First PWA (Progressive Web App) dengan Service Worker:**  
-   Menambahkan `manifest.json` dan *Service Worker* dengan strategi *Cache-First* untuk aset statis (HTML, CSS, font Google) dan *Stale-While-Revalidate* untuk endpoint API produk. Dengan demikian, dashboard RotiKu dapat di-*install* langsung ke layar utama ponsel/laptop dan tetap dapat dibuka serta dinavigasi secara penuh meskipun pengguna sama sekali tidak memiliki koneksi internet.
+   Menambahkan `manifest.json` dan *Service Worker* dengan strategi *Cache-First* untuk aset statis (HTML, CSS, font Google) dan *Stale-While-Revalidate* untuk endpoint API produk. Dengan demikian, dashboard Velora dapat di-*install* langsung ke layar utama ponsel/laptop dan tetap dapat dibuka serta dinavigasi secara penuh meskipun pengguna sama sekali tidak memiliki koneksi internet.
 
 ---
 
 ## 9. AI Usage Log Ringkasan
 
 Sesuai ketentuan kejujuran akademik PTS Pemrograman Web, seluruh penggunaan asisten AI didokumentasikan secara transparan pada dokumen terpisah [AI_USAGE_LOG.md](AI_USAGE_LOG.md).
-- **Alat yang Digunakan:** Antigravity AI Assistant (Gemini 3.8 Flash).
-- **Cakupan Bantuan:** Penyusunan arsitektur modular HTML5/CSS3/Vanilla JS, implementasi fungsi agregasi array, serta pembuatan kerangka dokumentasi dan panduan video.
-- **Verifikasi Mandiri Mahasiswa:** Seluruh kode diuji secara langsung pada lingkungan lokal, diverifikasi kesesuaiannya dengan variasi NIM 027 (X=0, Y=2, Z=7, C=1), serta siap didemonstrasikan dalam video berdurasi 8 menit.
+- **Alat yang Digunakan:** Antigravity AI Assistant (tercatat pada bagian sebelumnya) dan GitHub Copilot untuk perubahan serta pemeriksaan pada sesi ini.
+- **Cakupan Bantuan:** Penyusunan struktur HTML5/CSS3/Vanilla JavaScript, penyederhanaan dashboard, render kartu produk yang aman, fitur favorit/catatan, dan dokumentasi.
+- **Verifikasi pada sesi ini:** Browser memuat endpoint Products, menguji favorit, validasi catatan, error/retry, timestamp, gambar fallback, storage rusak, statistik, dan viewport desktop/tablet/mobile. Screenshot tidak disimpan sebagai berkas project; demonstrasi/video belum direkam.
 
 ---
 

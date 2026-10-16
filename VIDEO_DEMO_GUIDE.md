@@ -4,7 +4,7 @@
 - **Nama Mahasiswa:** Fitri
 - **NIM:** 2440304027
 - **Tiga Digit Terakhir NIM:** 027
-- **Nama Aplikasi:** RotiKu — Interactive Product Dashboard
+- **Nama Aplikasi:** Velora — Interactive Product Dashboard
 - **Mata Kuliah:** Pemrograman Web
 
 Panduan ini disusun secara runtut detik demi detik untuk membantu Anda merekam video demonstrasi berdurasi sekitar 8 menit sesuai ketentuan soal PTS.
@@ -16,7 +16,7 @@ Panduan ini disusun secara runtut detik demi detik untuk membantu Anda merekam v
 | Waktu | Durasi | Fokus Presentasi | Tindakan Visual Layar |
 |:---|:---:|:---|:---|
 | **00:00 – 00:30** | 30 dtk | Pembukaan & Identitas Mahasiswa | Kamera aktif menampilkan wajah penuh Anda |
-| **00:30 – 01:15** | 45 dtk | Pengenalan Aplikasi & Perhitungan Variasi NIM | Beralih ke layar penuh aplikasi RotiKu |
+| **00:30 – 01:15** | 45 dtk | Pengenalan Aplikasi & Perhitungan Variasi NIM | Beralih ke layar penuh aplikasi Velora |
 | **01:15 – 02:15** | 60 dtk | Demonstrasi Katalog & 4 Kartu Statistik | Scroll ke bagian Overview & Katalog |
 | **02:15 – 03:15** | 60 dtk | Demonstrasi Fitur Favorit & Persistensi localStorage | Klik bookmark hati, filter tab favorit, refresh browser |
 | **03:15 – 04:15** | 60 dtk | Demonstrasi Form Catatan & Validasi $\ge 30$ Karakter | Uji input gagal ($<30$ char) dan input valid ($\ge 30$ char) |
@@ -33,21 +33,21 @@ Panduan ini disusun secara runtut detik demi detik untuk membantu Anda merekam v
 > **Visual:** Kamera menyala, perlihatkan wajah Anda dengan pencahayaan jelas dan pakaian rapi.
 
 **Contoh Kalimat:**  
-*"Halo, selamat pagi/siang kepada Bapak/Ibu Dosen pengampu mata kuliah Pemrograman Web. Perkenalkan, nama saya **Fitri**, dengan NIM **2440304027**. Pada kesempatan kali ini, saya akan mendemonstrasikan hasil pengerjaan proyek Penilaian Tengah Semester (PTS) Pemrograman Web Individual saya, yaitu aplikasi dashboard interaktif bernama **RotiKu**."*
+*"Halo, selamat pagi/siang kepada Bapak/Ibu Dosen pengampu mata kuliah Pemrograman Web. Perkenalkan, nama saya **Fitri**, dengan NIM **2440304027**. Pada kesempatan kali ini, saya akan mendemonstrasikan hasil pengerjaan proyek Penilaian Tengah Semester (PTS) Pemrograman Web Individual saya, yaitu aplikasi dashboard interaktif bernama **Velora**."*
 
 ---
 
 ### Bagian 2: Pengenalan Aplikasi & Perhitungan Variasi NIM (00:30 – 01:15)
-> **Visual:** Alihkan rekaman ke layar peramban (*screen share*) menampilkan halaman utama RotiKu.
+> **Visual:** Alihkan rekaman ke layar peramban (*screen share*) menampilkan halaman utama Velora.
 
 **Contoh Kalimat:**  
-*"Aplikasi RotiKu ini dirancang khusus berdasarkan tiga digit terakhir NIM saya, yaitu **027**, yang menghasilkan ketentuan variasi sebagai berikut:*  
-- *Nilai $X = 0$, yaitu dataset wajib bersumber dari REST API **Products** di endpoint `https://dummyjson.com/products`.*  
+*"Aplikasi Velora ini dirancang khusus berdasarkan tiga digit terakhir NIM saya, yaitu **027**, yang menghasilkan ketentuan variasi sebagai berikut:*  
+- *Nilai $X = 0$, yaitu dataset wajib bersumber dari REST API **Products** di endpoint `https://dummyjson.com/products?limit=0`.*
 - *Nilai $Y = 2$, yaitu implementasi fitur Bookmark atau Favorit menggunakan `localStorage`.*  
 - *Nilai $Z = 7$, yaitu formulir catatan kurasi produk dengan validasi minimal 30 karakter bersih.*  
 - *Serta total $S = 0 + 2 + 7 = 9$, sehingga $C = 9 \pmod 4 = 1$, yang menghasilkan tantangan khusus berupa tombol **Retry** saat fetch gagal dan penampil **waktu terakhir data berhasil dimuat**.*  
 
-*Konsep visual RotiKu mengusung tema toko roti bernuansa hangat, bersih, dan profesional dengan warna dominan cream, beige, dan sentuhan cokelat hangat."*
+*Konsep visual Velora menggunakan gaya Soft Editorial Catalog, warna putih-lavender, dan tipografi serif-sans yang ringkas."*
 
 ---
 
@@ -56,12 +56,12 @@ Panduan ini disusun secara runtut detik demi detik untuk membantu Anda merekam v
 
 **Contoh Kalimat:**  
 *"Di bagian atas dashboard, kita dapat melihat 4 kartu statistik yang dihitung secara otomatis menggunakan JavaScript tingkat lanjut dari payload API asli, bukan angka hardcoded:*  
-1. ***Total Produk:** Terbaca sebanyak 30 item.*  
-2. ***Rata-rata Harga:** Dihitung menggunakan fungsi `reduce()` dan diformat menjadi mata uang USD menggunakan `Intl.NumberFormat`.*  
-3. ***Produk Termahal:** Ditemukan menggunakan perbandingan `reduce()`, yaitu Annibale Colombo Sofa dengan harga \$2499.99.*  
-4. ***Kategori Unik:** Dihitung menggunakan `map()` dan struktur data `new Set()` sehingga didapatkan 4 kategori unik.*  
+1. ***Total Produk:** Jumlah mengikuti panjang array hasil API; saat pemeriksaan terakhir, 194 produk diterima.*
+2. ***Rata-rata Harga:** Dihitung menggunakan `reduce()` dari seluruh produk dan ditampilkan dalam format Rupiah dengan kurs acuan.*
+3. ***Produk Termahal:** Ditemukan dengan `reduce()`; saat pemeriksaan terakhir, Durango SXT RWD menjadi produk tertinggi.*
+4. ***Kategori Unik:** Dihitung dengan `map()` dan `Set()`; saat pemeriksaan terakhir terdapat 24 kategori.*
 
-*Di bawahnya, terdapat katalog produk berbentuk responsive grid lengkap dengan gambar asli, fallback penanganan error gambar, nama, kategori, rating bintang, dan harga asli dari DummyJSON. Kita juga bisa memfilter berdasarkan kategori atau mencari nama produk secara instan melalui kotak pencarian."*
+*Di bawahnya terdapat katalog responsif dengan gambar API, fallback gambar, nama, kategori, harga Rupiah, dan tombol hati. Kategori, pencarian, pengurutan, serta tampilan favorit tetap bekerja pada seluruh data."*
 
 ---
 
@@ -70,9 +70,9 @@ Panduan ini disusun secara runtut detik demi detik untuk membantu Anda merekam v
 
 **Contoh Kalimat:**  
 *"Sekarang kita demonstrasikan fitur wajib digit $Y = 2$, yaitu Bookmark/Favorit.*  
-*Ketika saya mengklik tombol hati pada kartu produk pertama, tombol langsung berubah warna merah aktif, muncul notifikasi toast di sudut layar, dan counter badge pada tab maupun menu navigasi bertambah.*  
+*Ketika saya mengklik ikon hati pada kartu produk, ikon menjadi terisi lavender, muncul notifikasi, dan counter favorit bertambah.*
 *Jika saya mengklik tab 'Favorit Saya', katalog hanya menampilkan produk yang telah saya bookmark. Di bagian bawah juga terdapat section khusus 'Daftar Produk Favorit Tersimpan'.*  
-*Sekarang, mari kita buktikan persistensinya: saya tekan tombol **Refresh (F5)** pada browser. Dapat kita lihat, setelah halaman dimuat ulang, status produk favorit tetap tersimpan rapi karena ID produk disimpan di `localStorage` dengan kunci `rotiku_favorites` tanpa mengambil ulang API secara berulang."*
+*Sekarang, mari kita buktikan persistensinya: saya tekan tombol **Refresh (F5)** pada browser. Dapat kita lihat, setelah halaman dimuat ulang, status produk favorit tetap tersimpan rapi karena ID produk disimpan di `localStorage` dengan kunci `velora_favorites` tanpa mengambil ulang API secara berulang."*
 
 ---
 
@@ -83,7 +83,7 @@ Panduan ini disusun secara runtut detik demi detik untuk membantu Anda merekam v
 *"Selanjutnya adalah fitur wajib digit $Z = 7$, yaitu formulir catatan kurasi dengan validasi minimal 30 karakter bersih.*  
 *Dropdown produk ini otomatis mengambil daftar nama produk dari data API.*  
 *Pertama, mari kita coba kasus **input tidak valid**: saya pilih satu produk, lalu saya ketik kalimat pendek: 'Barang ini bagus'. Perhatikan indikator counter karakter di kanan atas: tertulis 16 dari 30 minimal dengan indikator merah. Saat saya klik 'Simpan Catatan Produk', sistem menolak input tersebut dan memunculkan kotak peringatan bertuliskan: Catatan harus berisi minimal 30 karakter setelah spasi dibersihkan.*  
-*Kedua, mari kita coba kasus **input valid**: saya ketik ulasan mendalam: 'Produk ini memiliki kualitas material yang sangat halus dan cocok untuk etalase bakery kami.' Panjangnya kini 89 karakter dan counter berubah hijau. Ketika saya klik 'Simpan', muncul banner hijau bertanda sukses, form dibersihkan, dan ulasan langsung tercatat di tabel riwayat sebelah kanan."*
+*Kedua, mari kita coba kasus **input valid**: saya ketik ulasan mendalam: 'Produk ini memiliki kualitas material yang sangat halus dan cocok untuk rekomendasi katalog unggulan kami.' Panjangnya kini 88 karakter dan counter berubah hijau. Ketika saya klik 'Simpan', muncul banner hijau bertanda sukses, form dibersihkan, dan ulasan langsung tercatat di tabel riwayat sebelah kanan."*
 
 ---
 
@@ -102,7 +102,7 @@ Panduan ini disusun secara runtut detik demi detik untuk membantu Anda merekam v
 > **Visual:** Buka DevTools (`Ctrl + Shift + I` atau `F12`), aktifkan Toggle Device Toolbar (`Ctrl + Shift + M`).
 
 **Contoh Kalimat:**  
-*"Mari kita uji responsivitas antarmuka RotiKu pada berbagai ukuran layar:*  
+*"Mari kita uji responsivitas antarmuka Velora pada berbagai ukuran layar:*  
 - *Pada tampilan **Desktop** di atas 1024px, katalog tertata dalam 3 hingga 4 kolom grid yang lega.*  
 - *Ketika saya ubah ke ukuran **Tablet (768px)**, statistik berubah menjadi 2 kolom, dan navigasi menyesuaikan secara fleksibel.*  
 - *Dan ketika saya ubah ke ukuran **Mobile (375px atau 480px)**, kartu produk dan formulir beralih menjadi 1 kolom vertikal yang ramah sentuhan jempol.*  
@@ -115,10 +115,10 @@ Panduan ini disusun secara runtut detik demi detik untuk membantu Anda merekam v
 
 **Contoh Kalimat:**  
 *"Sekarang kita buktikan implementasi teknis di balik layar:*  
-*1. Pada tab **Network**, ketika halaman dimuat, terdapat request HTTP GET ke `https://dummyjson.com/products` dengan status HTTP 200 OK, Content-Type `application/json`, dan respon berisi array 30 produk.*  
+*1. Pada tab **Network**, request HTTP GET menuju `https://dummyjson.com/products?limit=0`; periksa status HTTP serta jumlah aktual pada `total` dan panjang array `products`.*
 *2. Pada tab **Application**, di bagian **Local Storage**, kita dapat melihat dua kunci utama:*  
-   - *`rotiku_favorites`: berisi array ID produk yang kita favoritkan.*  
-   - *`rotiku_notes`: berisi array objek catatan yang baru saja kita simpan.*  
+   - *`velora_favorites`: berisi array ID produk yang kita favoritkan.*  
+   - *`velora_notes`: berisi array objek catatan yang baru saja kita simpan.*  
 *Hal ini membuktikan bahwa data dikelola secara murni di peramban tanpa backend tambahan."*
 
 ---
@@ -129,13 +129,13 @@ Panduan ini disusun secara runtut detik demi detik untuk membantu Anda merekam v
 **Contoh Kalimat:**  
 *"Sebagai penutup, mari kita lihat riwayat commit Git pada repository ini.*  
 *(Jalankan perintah `git log --oneline`)*  
-*Dapat dilihat seluruh proses pengembangan dilakukan secara bertahap dan bermakna: mulai dari chore inisialisasi struktur, feat layout semantik, style tema bakery responsif, feat endpoint DummyJSON, feat kalkulasi statistik, feat persistensi favorit, hingga validasi formulir catatan.*  
+*Dapat dilihat seluruh proses pengembangan dilakukan secara bertahap dan bermakna: mulai dari inisialisasi struktur, layout semantik, styling tema minimalis responsif, endpoint DummyJSON, kalkulasi statistik, persistensi favorit, hingga validasi formulir catatan.*  
 
 *Di file `js/app.js`, fungsi `calculateAndRenderStatistics` menggunakan metode `reduce()` untuk menjumlahkan harga:*  
 `const totalPrice = list.reduce((acc, item) => acc + (Number(item.price) || 0), 0);`  
 *Kemudian dibagi dengan `list.length` dengan proteksi pembagian nol agar tidak terjadi error `NaN`.*  
 
-*Demikian presentasi demonstrasi aplikasi RotiKu untuk memenuhi tugas PTS Pemrograman Web. Terima kasih atas perhatian Bapak/Ibu Dosen."*
+*Demikian presentasi demonstrasi aplikasi Velora untuk memenuhi tugas PTS Pemrograman Web. Terima kasih atas perhatian Bapak/Ibu Dosen."*
 
 ---
 
